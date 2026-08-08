@@ -7,22 +7,25 @@ use assets_manager::{
 };
 use hashbrown::HashSet;
 
-/// Loads assets from the default path or `VELOREN_ASSETS_OVERRIDE` env if it is
-/// set.
+/// Loads assets from the default path, optionally overlaying content packs
+/// (in priority order, later packs override earlier ones) and the legacy
+/// `VELOREN_ASSETS_OVERRIDE` environment variable (highest priority).
 #[derive(Debug, Clone)]
 pub struct FileSystem {
     default: RawFs,
-    override_dir: Option<RawFs>,
+    packs: Vec<RawFs>,
 }
 
 impl FileSystem {
     pub fn new() -> io::Result<Self> {
         let default = RawFs::new(&*super::ASSETS_PATH)?;
-        let override_dir = std::env::var_os("VELOREN_ASSETS_OVERRIDE").and_then(|path| {
-            RawFs::new(path)
-                .map_err(|err| tracing::error!("Error setting override assets directory: {}", err))
-                .ok()
-        });
+        let mut packs = Vec::new();
+        if let Some(path) = std::env::var_os("VELOREN_ASSETS_OVERRIDE") {
+            match RawFs::new(path) {
+                Ok(fs) => packs.push(fs),
+                Err(err) => tracing::error!("Error setting override assets directory: {}", err),
+            }
+        }
 
         let canary = fs::read_to_string(super::ASSETS_PATH.join("common").join("canary.canary"))
             .map_err(|e| io::Error::other(format!("failed to load canary asset: {}", e)))?;
@@ -31,23 +34,21 @@ impl FileSystem {
             panic!("Canary asset `canary.canary` was present but did not contain the expected data. This *heavily* implies that you've not correctly set up Git LFS (Large File Storage). Visit `https://book.veloren.net/contributors/development-tools.html#git-lfs` for more information about setting up Git LFS.");
         }
 
-        Ok(Self {
-            default,
-            override_dir,
-        })
+        Ok(Self { default, packs })
     }
 }
 
 impl Source for FileSystem {
     fn read(&self, id: &str, ext: &str) -> io::Result<FileContent<'_>> {
-        if let Some(dir) = &self.override_dir {
+        // Check packs in reverse order: the last (highest priority) pack wins.
+        for dir in self.packs.iter().rev() {
             match dir.read(id, ext) {
                 Ok(content) => return Ok(content),
                 Err(err) => {
                     if err.kind() != io::ErrorKind::NotFound {
                         let path = dir.path_of(DirEntry::File(id, ext));
                         tracing::warn!(
-                            "Error reading \"{}\": {}. Falling back to default",
+                            "Error reading \"{}\": {}. Falling back to lower-priority source",
                             path.display(),
                             err
                         );
@@ -56,7 +57,7 @@ impl Source for FileSystem {
             }
         }
 
-        // If not found in override path, try load from main asset path
+        // If not found in any pack, try load from main asset path
         self.default.read(id, ext)
     }
 
@@ -64,11 +65,12 @@ impl Source for FileSystem {
         // It's easy to get wrong, so here's the algorithm:
         //
         // 1) Read default assets directory first, gather directories it has.
-        // 2) Read override assets directory second, gather directories *it* has.
+        // 2) Read each pack directory in priority order (low to high), gathering
+        //    directories *it* has.
         // 3) Call callback on each new directory (or file).
         //
-        // This should route to src.read() above, which does read override
-        // first, so even if we search for default directories first, we're
+        // This should route to src.read() above, which does read higher-priority
+        // packs first, so even if we search for default directories first, we're
         // still overriding files proper.
         //
         // The rest is just properly routing errors.
@@ -86,58 +88,55 @@ impl Source for FileSystem {
             }
         };
 
-        let default_res = self.default.read_dir(id, &mut f);
-        let Some(dir) = &self.override_dir else {
-            // If no override, return right there.
-            return default_res;
-        };
+        let mut last_err = self.default.read_dir(id, &mut f);
 
-        let override_res = match dir.read_dir(id, &mut f) {
-            Ok(()) => Ok(()),
-            Err(err) => {
-                if err.kind() != io::ErrorKind::NotFound {
-                    let path = dir.path_of(DirEntry::Directory(id));
-                    tracing::warn!(
-                        "Error reading \"{}\": {}. Falling back to default",
-                        path.display(),
-                        err
-                    );
-                }
-                Err(err)
-            },
-        };
+        for dir in &self.packs {
+            let pack_res = match dir.read_dir(id, &mut f) {
+                Ok(()) => Ok(()),
+                Err(err) => {
+                    if err.kind() != io::ErrorKind::NotFound {
+                        let path = dir.path_of(DirEntry::Directory(id));
+                        tracing::warn!(
+                            "Error reading \"{}\": {}. Falling back to lower-priority source",
+                            path.display(),
+                            err
+                        );
+                    }
+                    Err(err)
+                },
+            };
 
-        // Error juggling
-        match (default_res, override_res) {
-            // If failed from the start, error.
-            //
-            // Technically not necessary, but better be safe then sorry?
-            (Err(err1), _) if err1.kind() != io::ErrorKind::NotFound => Err(err1),
-            // If override succed, cool, celebrate.
-            (_, Ok(())) => Ok(()),
-            // If override failed, but default succeded, who cares.
-            //
-            // We could be strict here, but overrides are brittle by design,
-            // and may fail with new version, so ...
-            //
-            // We log the warning there, that's it.
-            (Ok(()), Err(_)) => Ok(()),
-            // If If both failed, return last error.
-            (Err(_), Err(err2)) => Err(err2),
+            // Error juggling
+            match (last_err, pack_res) {
+                // If failed from the start, error.
+                //
+                // Technically not necessary, but better be safe then sorry?
+                (Err(err1), _) if err1.kind() != io::ErrorKind::NotFound => last_err = Err(err1),
+                // If pack succeeded, cool, celebrate.
+                (_, Ok(())) => last_err = Ok(()),
+                // If pack failed, but a lower-priority source succeeded, who cares.
+                //
+                // We could be strict here, but overrides are brittle by design,
+                // and may fail with new version, so ...
+                //
+                // We log the warning there, that's it.
+                (Ok(()), Err(_)) => last_err = Ok(()),
+                // If both failed, return last error.
+                (Err(_), Err(err2)) => last_err = Err(err2),
+            }
         }
+
+        last_err
     }
 
     fn exists(&self, entry: DirEntry) -> bool {
-        self.override_dir
-            .as_ref()
-            .is_some_and(|dir| dir.exists(entry))
-            || self.default.exists(entry)
+        self.packs.iter().any(|dir| dir.exists(entry)) || self.default.exists(entry)
     }
 
     fn configure_hot_reloading(&self, events: EventSender) -> Result<(), BoxedError> {
         let mut builder = FsWatcherBuilder::new()?;
 
-        if let Some(dir) = &self.override_dir {
+        for dir in &self.packs {
             builder.watch(dir.root().to_owned())?;
         }
         builder.watch(self.default.root().to_owned())?;
@@ -159,14 +158,25 @@ mod tests {
 
     impl FileSystem {
         pub(super) fn scope<R>(f: &dyn Fn(FileSystem, &Path, &Path) -> R) -> R {
+            Self::scope_with_packs(&|fs, main_path, pack1_path, _pack2_path| {
+                f(fs, main_path, pack1_path)
+            })
+        }
+
+        /// Like `scope`, but with two pack directories (each with its own
+        /// tempdir). Packs are appended in order, so the later pack takes
+        /// priority over the earlier one.
+        pub(super) fn scope_with_packs<R>(f: &dyn Fn(FileSystem, &Path, &Path, &Path) -> R) -> R {
             let tempdir = tempfile::tempdir().expect("failed to get tempdir");
             let default = RawFs::new(tempdir.path())
                 .expect("failed to create temporary filesystem for assets");
 
-            let tempdir_override =
-                tempfile::tempdir().expect("failed to get tempdir for overrides");
-            let override_dir = RawFs::new(tempdir_override.path())
-                .expect("failed to create temprorary override filesystem");
+            let tempdir_pack1 = tempfile::tempdir().expect("failed to get tempdir for packs");
+            let pack1 = RawFs::new(tempdir_pack1.path())
+                .expect("failed to create temporary pack filesystem");
+            let tempdir_pack2 = tempfile::tempdir().expect("failed to get tempdir for packs");
+            let pack2 = RawFs::new(tempdir_pack2.path())
+                .expect("failed to create temporary pack filesystem");
 
             // NOTE: we're using closure pattern here, because otherwise
             // tempdirs would get dropped about here, and run their
@@ -175,10 +185,14 @@ mod tests {
             // after the test closure gets called.
             let this = Self {
                 default,
-                override_dir: Some(override_dir),
+                packs: vec![pack1, pack2],
             };
-
-            f(this, tempdir.path(), tempdir_override.path())
+            f(
+                this,
+                tempdir.path(),
+                tempdir_pack1.path(),
+                tempdir_pack2.path(),
+            )
         }
 
         pub(super) fn read_to_str(&self, id: &str, ext: &str) -> String {
@@ -400,9 +414,97 @@ mod tests {
             let res = fs.read("loadout.template", "ron");
             assert_eq!(res.as_ref().unwrap_err().kind(), io::ErrorKind::NotFound);
             let msg = format!("{:#?}", res.unwrap_err());
-            if msg.find("loadout/template.ron").is_none() {
+            // The error path uses the platform separator (`/` on Unix, `\` on Windows),
+            // and is Debug-formatted, so `\` is escaped as `\\` on Windows.
+            if msg.find("loadout/template.ron").is_none()
+                && msg.find("loadout\\\\template.ron").is_none()
+            {
                 panic!("error message doesn't contain path:\n{msg}");
             }
+        })
+    }
+
+    // -- Multi-pack tests (P0: N-source generalization)
+
+    #[test]
+    fn test_read_pack_priority() {
+        // Pack2 (appended later) overrides Pack1; Pack1 overrides default.
+        FileSystem::scope_with_packs(&|fs, main_path, pack1, pack2| {
+            FileSystem::mock_file(main_path, "template.ron", "(default)");
+            FileSystem::mock_file(pack1, "template.ron", "(pack1)");
+            FileSystem::mock_file(pack2, "template.ron", "(pack2)");
+
+            assert_eq!(fs.read_to_str("template", "ron"), "(pack2)");
+        })
+    }
+
+    #[test]
+    fn test_read_pack_falls_back_across_layers() {
+        // Missing in pack2 but present in pack1 -> pack1 wins.
+        // Missing in all packs -> default.
+        FileSystem::scope_with_packs(&|fs, main_path, pack1, _pack2| {
+            FileSystem::mock_file(main_path, "main.ron", "(default)");
+            FileSystem::mock_file(pack1, "low.ron", "(pack1)");
+
+            assert_eq!(fs.read_to_str("low", "ron"), "(pack1)");
+            assert_eq!(fs.read_to_str("main", "ron"), "(default)");
+            assert!(fs.read("nope", "ron").is_err());
+        })
+    }
+
+    #[test]
+    fn test_read_dir_multi_pack_merge() {
+        // Files from all sources are merged; duplicates resolve to the
+        // highest-priority pack.
+        FileSystem::scope_with_packs(&|fs, main_path, pack1, pack2| {
+            #[rustfmt::skip]
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("shared.ron", "(default)"),
+                    FsNode::File("main_only.ron", "(7)"),
+                ]),
+            ]);
+            #[rustfmt::skip]
+            FileSystem::mock_tree(pack1, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("shared.ron", "(pack1)"),
+                    FsNode::File("pack1_only.ron", "(1)"),
+                ]),
+            ]);
+            #[rustfmt::skip]
+            FileSystem::mock_tree(pack2, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("shared.ron", "(pack2)"),
+                    FsNode::File("pack2_only.ron", "(2)"),
+                ]),
+            ]);
+
+            let mut files: Vec<String> = vec![];
+            let _ = fs.read_dir("entity", &mut |e: DirEntry| match e {
+                DirEntry::File(path, ext) => files.push(format!("{path}.{ext}")),
+                DirEntry::Directory(path) => files.push(format!("{path}/")),
+            });
+            files.sort();
+            assert_eq!(files, vec![
+                "entity.main_only.ron".to_owned(),
+                "entity.pack1_only.ron".to_owned(),
+                "entity.pack2_only.ron".to_owned(),
+                // shared resolves to the highest-priority pack (pack2)
+                "entity.shared.ron".to_owned(),
+            ]);
+            assert_eq!(fs.read_to_str("entity.shared", "ron"), "(pack2)");
+        })
+    }
+
+    #[test]
+    fn test_exists_across_packs() {
+        FileSystem::scope_with_packs(&|fs, main_path, pack1, _pack2| {
+            FileSystem::mock_file(main_path, "main.ron", "(default)");
+            FileSystem::mock_file(pack1, "pack.ron", "(pack1)");
+
+            assert!(fs.exists(DirEntry::File("main", "ron")));
+            assert!(fs.exists(DirEntry::File("pack", "ron")));
+            assert!(!fs.exists(DirEntry::File("nope", "ron")));
         })
     }
 }
