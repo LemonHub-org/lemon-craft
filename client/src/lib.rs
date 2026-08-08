@@ -3603,7 +3603,7 @@ mod tests {
         let username = "Foo";
         let password = "Bar";
         let auth_server = "auth.veloren.net";
-        let veloren_client: Result<Client, Error> = runtime.block_on(Client::new(
+        let lemoncraft_client: Result<Client, Error> = runtime.block_on(Client::new(
             ConnectionArgs::Tcp {
                 hostname: "127.0.0.1:9000".to_owned(),
                 prefer_ipv6: false,
@@ -3621,7 +3621,7 @@ mod tests {
         ));
         let localisation = LocalizationHandle::load_expect("en");
 
-        let _ = veloren_client.map(|mut client| {
+        let _ = lemoncraft_client.map(|mut client| {
             //clock
             let mut clock = Clock::new(Duration::from_secs_f64(SPT));
 

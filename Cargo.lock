@@ -4103,6 +4103,601 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09edd9e8b54e49e587e4f6295a7d29c3ea94d469cb40ab8ca70b288248a81db2"
 
 [[package]]
+name = "lemoncraft-client"
+version = "0.18.0"
+dependencies = [
+ "async-channel",
+ "authc",
+ "byteorder",
+ "clap",
+ "hashbrown 0.17.1",
+ "hickory-resolver",
+ "image",
+ "lemoncraft-client-i18n",
+ "lemoncraft-common",
+ "lemoncraft-common-base",
+ "lemoncraft-common-frontend",
+ "lemoncraft-common-i18n",
+ "lemoncraft-common-net",
+ "lemoncraft-common-state",
+ "lemoncraft-common-systems",
+ "lemoncraft-network",
+ "lemoncraft-voxygen-i18n-helpers",
+ "num 0.4.3",
+ "quinn",
+ "rayon",
+ "ron",
+ "rustls",
+ "rustyline",
+ "serde",
+ "specs",
+ "tokio",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-client-i18n"
+version = "0.18.0"
+dependencies = [
+ "clap",
+ "fluent",
+ "fluent-bundle",
+ "fluent-syntax",
+ "hashbrown 0.17.1",
+ "intl-memoizer",
+ "lemoncraft-common-assets",
+ "lemoncraft-common-i18n",
+ "serde",
+ "tracing",
+ "unic-langid",
+]
+
+[[package]]
+name = "lemoncraft-common"
+version = "0.18.0"
+dependencies = [
+ "ahash 0.8.12",
+ "approx 0.5.1",
+ "bitflags 2.13.0",
+ "chrono",
+ "chrono-tz",
+ "clap",
+ "criterion",
+ "crossbeam-utils 0.8.21",
+ "csv",
+ "dot_vox",
+ "enum-map",
+ "enumset",
+ "fxhash",
+ "hashbrown 0.17.1",
+ "indexmap 2.14.0",
+ "inline_tweak",
+ "itertools 0.14.0",
+ "kiddo",
+ "lazy_static",
+ "lemoncraft-common-assets",
+ "lemoncraft-common-base",
+ "lemoncraft-common-i18n",
+ "num-derive",
+ "num-traits",
+ "ordered-float 5.3.0",
+ "petgraph 0.8.3",
+ "rand 0.10.1",
+ "rand_chacha 0.10.0",
+ "rayon",
+ "regex",
+ "ron",
+ "roots",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "sha2 0.11.0",
+ "slab",
+ "slotmap",
+ "specs",
+ "spin_sleep",
+ "strum",
+ "thread-priority",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-common-assets"
+version = "0.18.0"
+dependencies = [
+ "assets_manager",
+ "dot_vox",
+ "hashbrown 0.17.1",
+ "image",
+ "lazy_static",
+ "ron",
+ "serde",
+ "tempfile",
+ "tracing",
+ "walkdir",
+ "wavefront",
+]
+
+[[package]]
+name = "lemoncraft-common-base"
+version = "0.18.0"
+dependencies = [
+ "directories-next",
+ "profiling",
+ "tracing",
+]
+
+[[package]]
+name = "lemoncraft-common-dynlib"
+version = "0.18.0"
+dependencies = [
+ "find_folder",
+ "libloading 0.9.0",
+ "notify",
+ "tracing",
+]
+
+[[package]]
+name = "lemoncraft-common-ecs"
+version = "0.18.0"
+dependencies = [
+ "float-cmp",
+ "lemoncraft-common-base",
+ "specs",
+ "tracing",
+]
+
+[[package]]
+name = "lemoncraft-common-frontend"
+version = "0.18.0"
+dependencies = [
+ "lemoncraft-common-base",
+ "termcolor",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "tracing-tracy",
+]
+
+[[package]]
+name = "lemoncraft-common-i18n"
+version = "0.18.0"
+dependencies = [
+ "hashbrown 0.17.1",
+ "rand 0.10.1",
+ "serde",
+]
+
+[[package]]
+name = "lemoncraft-common-net"
+version = "0.18.0"
+dependencies = [
+ "bincode",
+ "flate2",
+ "hashbrown 0.17.1",
+ "image",
+ "lemoncraft-common",
+ "num-traits",
+ "serde",
+ "specs",
+ "sum_type",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-common-state"
+version = "0.18.0"
+dependencies = [
+ "async-trait",
+ "atomic_refcell",
+ "bincode",
+ "futures",
+ "hashbrown 0.17.1",
+ "hex",
+ "lemoncraft-common",
+ "lemoncraft-common-assets",
+ "lemoncraft-common-base",
+ "lemoncraft-common-ecs",
+ "lemoncraft-common-net",
+ "num_cpus",
+ "rayon",
+ "scopeguard",
+ "serde",
+ "sha2 0.11.0",
+ "specs",
+ "tar",
+ "thread-priority",
+ "timer-queue",
+ "tokio",
+ "toml 1.1.2+spec-1.1.0",
+ "tracing",
+ "vek 0.17.2",
+ "wasmtime",
+ "wasmtime-wasi",
+]
+
+[[package]]
+name = "lemoncraft-common-systems"
+version = "0.18.0"
+dependencies = [
+ "itertools 0.14.0",
+ "lemoncraft-common",
+ "lemoncraft-common-base",
+ "lemoncraft-common-ecs",
+ "lemoncraft-common-net",
+ "lemoncraft-common-state",
+ "ordered-float 5.3.0",
+ "rand 0.10.1",
+ "rayon",
+ "specs",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-network"
+version = "0.3.0"
+dependencies = [
+ "async-channel",
+ "async-trait",
+ "bincode",
+ "bytes",
+ "clap",
+ "criterion",
+ "crossbeam-channel",
+ "futures-util",
+ "hashbrown 0.17.1",
+ "lazy_static",
+ "lemoncraft-network-protocol",
+ "lz-fear",
+ "prometheus",
+ "prometheus-hyper",
+ "quinn",
+ "rand 0.10.1",
+ "rcgen",
+ "rustls",
+ "serde",
+ "shellexpand",
+ "socket2",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "lemoncraft-network-protocol"
+version = "0.6.1"
+dependencies = [
+ "async-channel",
+ "async-trait",
+ "bitflags 2.13.0",
+ "bytes",
+ "criterion",
+ "hashbrown 0.17.1",
+ "prometheus",
+ "rand 0.10.1",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "lemoncraft-query-server"
+version = "0.1.2"
+dependencies = [
+ "clap",
+ "protocol",
+ "rand 0.10.1",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "lemoncraft-rtsim"
+version = "0.18.0"
+dependencies = [
+ "anymap2",
+ "atomic_refcell",
+ "enum-map",
+ "fxhash",
+ "hashbrown 0.17.1",
+ "itertools 0.14.0",
+ "lemoncraft-common",
+ "lemoncraft-world",
+ "num-traits",
+ "once_cell",
+ "rand 0.10.1",
+ "rand_chacha 0.10.0",
+ "rayon",
+ "rmp-serde",
+ "serde",
+ "slotmap",
+ "specs",
+ "take-once",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-server"
+version = "0.18.0"
+dependencies = [
+ "atomicwrites",
+ "authc",
+ "bincode",
+ "censor",
+ "chrono",
+ "chrono-tz",
+ "crossbeam-channel",
+ "drop_guard",
+ "enum-map",
+ "futures-util",
+ "hashbrown 0.17.1",
+ "humantime",
+ "itertools 0.14.0",
+ "lazy_static",
+ "lemoncraft-common",
+ "lemoncraft-common-base",
+ "lemoncraft-common-ecs",
+ "lemoncraft-common-net",
+ "lemoncraft-common-state",
+ "lemoncraft-common-systems",
+ "lemoncraft-network",
+ "lemoncraft-query-server",
+ "lemoncraft-rtsim",
+ "lemoncraft-server-agent",
+ "lemoncraft-world",
+ "noise",
+ "num_cpus",
+ "parking_lot",
+ "portpicker",
+ "prometheus",
+ "quinn",
+ "rand 0.10.1",
+ "rayon",
+ "refinery",
+ "ron",
+ "rusqlite",
+ "rustls",
+ "rustls-pemfile",
+ "schnellru",
+ "serde",
+ "serde_json",
+ "slotmap",
+ "specs",
+ "strum",
+ "tokio",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-server-agent"
+version = "0.18.0"
+dependencies = [
+ "itertools 0.14.0",
+ "lazy_static",
+ "lemoncraft-common",
+ "lemoncraft-common-base",
+ "lemoncraft-common-dynlib",
+ "lemoncraft-rtsim",
+ "lemoncraft-world",
+ "rand 0.10.1",
+ "specs",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-server-cli"
+version = "0.18.0"
+dependencies = [
+ "axum",
+ "cansi",
+ "chrono",
+ "clap",
+ "crossterm",
+ "http-body-util",
+ "hyper",
+ "lazy_static",
+ "lemoncraft-common",
+ "lemoncraft-common-base",
+ "lemoncraft-common-frontend",
+ "lemoncraft-common-net",
+ "lemoncraft-server",
+ "lemoncraft-server-agent",
+ "lemoncraft-world",
+ "mimalloc",
+ "num_cpus",
+ "prometheus",
+ "rand 0.10.1",
+ "ratatui",
+ "ron",
+ "serde",
+ "shell-words",
+ "signal-hook 0.4.4",
+ "specs",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "lemoncraft-voxygen"
+version = "0.18.0"
+dependencies = [
+ "backtrace",
+ "bitflags 2.13.0",
+ "bytemuck",
+ "chrono",
+ "chumsky",
+ "clap",
+ "conrod_core",
+ "cpal",
+ "criterion",
+ "crossbeam-channel",
+ "crossbeam-utils 0.8.21",
+ "directories-next",
+ "discord-sdk",
+ "dispatch",
+ "dot_vox",
+ "egui",
+ "egui-wgpu",
+ "egui-winit",
+ "enum-map",
+ "euc",
+ "gilrs",
+ "glyph_brush",
+ "guillotiere",
+ "hashbrown 0.17.1",
+ "iced_native",
+ "image",
+ "inline_tweak",
+ "itertools 0.14.0",
+ "kira",
+ "lazy_static",
+ "lemoncraft-client",
+ "lemoncraft-client-i18n",
+ "lemoncraft-common",
+ "lemoncraft-common-base",
+ "lemoncraft-common-ecs",
+ "lemoncraft-common-frontend",
+ "lemoncraft-common-i18n",
+ "lemoncraft-common-net",
+ "lemoncraft-common-state",
+ "lemoncraft-common-systems",
+ "lemoncraft-server",
+ "lemoncraft-voxygen-anim",
+ "lemoncraft-voxygen-egui",
+ "lemoncraft-voxygen-i18n-helpers",
+ "lemoncraft-world",
+ "levenshtein",
+ "mimalloc",
+ "mumble-link",
+ "native-dialog",
+ "num 0.4.3",
+ "num_cpus",
+ "open",
+ "ordered-float 5.3.0",
+ "rand 0.10.1",
+ "rand_chacha 0.10.0",
+ "rayon",
+ "regex",
+ "ron",
+ "serde",
+ "serde_with",
+ "sha2 0.11.0",
+ "shaderc",
+ "slab",
+ "specs",
+ "strum",
+ "tokio",
+ "tracing",
+ "treeculler",
+ "vek 0.17.2",
+ "wgpu",
+ "wgpu-profiler",
+ "window_clipboard",
+ "winit",
+ "winres",
+]
+
+[[package]]
+name = "lemoncraft-voxygen-anim"
+version = "0.18.0"
+dependencies = [
+ "bytemuck",
+ "inline_tweak",
+ "lazy_static",
+ "lemoncraft-common",
+ "lemoncraft-common-dynlib",
+ "lemoncraft-common-state",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-voxygen-egui"
+version = "0.18.0"
+dependencies = [
+ "egui",
+ "egui-winit",
+ "egui_plot",
+ "lazy_static",
+ "lemoncraft-client",
+ "lemoncraft-common",
+ "lemoncraft-common-dynlib",
+ "winit",
+]
+
+[[package]]
+name = "lemoncraft-voxygen-i18n-helpers"
+version = "0.18.0"
+dependencies = [
+ "lemoncraft-client-i18n",
+ "lemoncraft-common",
+ "lemoncraft-common-net",
+ "rand 0.10.1",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-world"
+version = "0.18.0"
+dependencies = [
+ "arr_macro",
+ "bincode",
+ "bitvec",
+ "clap",
+ "criterion",
+ "csv",
+ "deflate",
+ "delaunator",
+ "enum-map",
+ "enumset",
+ "fallible-iterator",
+ "fixed",
+ "flate2",
+ "fxhash",
+ "hashbrown 0.17.1",
+ "image",
+ "indicatif",
+ "itertools 0.14.0",
+ "kiddo",
+ "lazy_static",
+ "lemoncraft-common",
+ "lemoncraft-common-base",
+ "lemoncraft-common-dynlib",
+ "lemoncraft-common-frontend",
+ "lemoncraft-common-net",
+ "lz-fear",
+ "minifb",
+ "noise",
+ "num 0.4.3",
+ "num-traits",
+ "ordered-float 5.3.0",
+ "rand 0.10.1",
+ "rand_chacha 0.10.0",
+ "rayon",
+ "ron",
+ "rstar",
+ "rusqlite",
+ "serde",
+ "signal-hook 0.4.4",
+ "strum",
+ "svg_fmt",
+ "tiny-skia 0.12.0",
+ "tracing",
+ "tracing-subscriber",
+ "vek 0.17.2",
+]
+
+[[package]]
 name = "levenshtein"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8606,601 +9201,6 @@ dependencies = [
  "num-traits",
  "rustc_version 0.4.1",
  "serde",
-]
-
-[[package]]
-name = "veloren-client"
-version = "0.18.0"
-dependencies = [
- "async-channel",
- "authc",
- "byteorder",
- "clap",
- "hashbrown 0.17.1",
- "hickory-resolver",
- "image",
- "num 0.4.3",
- "quinn",
- "rayon",
- "ron",
- "rustls",
- "rustyline",
- "serde",
- "specs",
- "tokio",
- "tracing",
- "vek 0.17.2",
- "veloren-client-i18n",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-frontend",
- "veloren-common-i18n",
- "veloren-common-net",
- "veloren-common-state",
- "veloren-common-systems",
- "veloren-network",
- "veloren-voxygen-i18n-helpers",
-]
-
-[[package]]
-name = "veloren-client-i18n"
-version = "0.18.0"
-dependencies = [
- "clap",
- "fluent",
- "fluent-bundle",
- "fluent-syntax",
- "hashbrown 0.17.1",
- "intl-memoizer",
- "serde",
- "tracing",
- "unic-langid",
- "veloren-common-assets",
- "veloren-common-i18n",
-]
-
-[[package]]
-name = "veloren-common"
-version = "0.18.0"
-dependencies = [
- "ahash 0.8.12",
- "approx 0.5.1",
- "bitflags 2.13.0",
- "chrono",
- "chrono-tz",
- "clap",
- "criterion",
- "crossbeam-utils 0.8.21",
- "csv",
- "dot_vox",
- "enum-map",
- "enumset",
- "fxhash",
- "hashbrown 0.17.1",
- "indexmap 2.14.0",
- "inline_tweak",
- "itertools 0.14.0",
- "kiddo",
- "lazy_static",
- "num-derive",
- "num-traits",
- "ordered-float 5.3.0",
- "petgraph 0.8.3",
- "rand 0.10.1",
- "rand_chacha 0.10.0",
- "rayon",
- "regex",
- "ron",
- "roots",
- "serde",
- "serde_json",
- "serde_repr",
- "sha2 0.11.0",
- "slab",
- "slotmap",
- "specs",
- "spin_sleep",
- "strum",
- "thread-priority",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "vek 0.17.2",
- "veloren-common-assets",
- "veloren-common-base",
- "veloren-common-i18n",
-]
-
-[[package]]
-name = "veloren-common-assets"
-version = "0.18.0"
-dependencies = [
- "assets_manager",
- "dot_vox",
- "hashbrown 0.17.1",
- "image",
- "lazy_static",
- "ron",
- "serde",
- "tempfile",
- "tracing",
- "walkdir",
- "wavefront",
-]
-
-[[package]]
-name = "veloren-common-base"
-version = "0.18.0"
-dependencies = [
- "directories-next",
- "profiling",
- "tracing",
-]
-
-[[package]]
-name = "veloren-common-dynlib"
-version = "0.18.0"
-dependencies = [
- "find_folder",
- "libloading 0.9.0",
- "notify",
- "tracing",
-]
-
-[[package]]
-name = "veloren-common-ecs"
-version = "0.18.0"
-dependencies = [
- "float-cmp",
- "specs",
- "tracing",
- "veloren-common-base",
-]
-
-[[package]]
-name = "veloren-common-frontend"
-version = "0.18.0"
-dependencies = [
- "termcolor",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "tracing-tracy",
- "veloren-common-base",
-]
-
-[[package]]
-name = "veloren-common-i18n"
-version = "0.18.0"
-dependencies = [
- "hashbrown 0.17.1",
- "rand 0.10.1",
- "serde",
-]
-
-[[package]]
-name = "veloren-common-net"
-version = "0.18.0"
-dependencies = [
- "bincode",
- "flate2",
- "hashbrown 0.17.1",
- "image",
- "num-traits",
- "serde",
- "specs",
- "sum_type",
- "tracing",
- "vek 0.17.2",
- "veloren-common",
-]
-
-[[package]]
-name = "veloren-common-state"
-version = "0.18.0"
-dependencies = [
- "async-trait",
- "atomic_refcell",
- "bincode",
- "futures",
- "hashbrown 0.17.1",
- "hex",
- "num_cpus",
- "rayon",
- "scopeguard",
- "serde",
- "sha2 0.11.0",
- "specs",
- "tar",
- "thread-priority",
- "timer-queue",
- "tokio",
- "toml 1.1.2+spec-1.1.0",
- "tracing",
- "vek 0.17.2",
- "veloren-common",
- "veloren-common-assets",
- "veloren-common-base",
- "veloren-common-ecs",
- "veloren-common-net",
- "wasmtime",
- "wasmtime-wasi",
-]
-
-[[package]]
-name = "veloren-common-systems"
-version = "0.18.0"
-dependencies = [
- "itertools 0.14.0",
- "ordered-float 5.3.0",
- "rand 0.10.1",
- "rayon",
- "specs",
- "tracing",
- "vek 0.17.2",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-ecs",
- "veloren-common-net",
- "veloren-common-state",
-]
-
-[[package]]
-name = "veloren-network"
-version = "0.3.0"
-dependencies = [
- "async-channel",
- "async-trait",
- "bincode",
- "bytes",
- "clap",
- "criterion",
- "crossbeam-channel",
- "futures-util",
- "hashbrown 0.17.1",
- "lazy_static",
- "lz-fear",
- "prometheus",
- "prometheus-hyper",
- "quinn",
- "rand 0.10.1",
- "rcgen",
- "rustls",
- "serde",
- "shellexpand",
- "socket2",
- "tokio",
- "tokio-stream",
- "tracing",
- "tracing-subscriber",
- "veloren-network-protocol",
-]
-
-[[package]]
-name = "veloren-network-protocol"
-version = "0.6.1"
-dependencies = [
- "async-channel",
- "async-trait",
- "bitflags 2.13.0",
- "bytes",
- "criterion",
- "hashbrown 0.17.1",
- "prometheus",
- "rand 0.10.1",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "veloren-query-server"
-version = "0.1.2"
-dependencies = [
- "clap",
- "protocol",
- "rand 0.10.1",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "veloren-rtsim"
-version = "0.18.0"
-dependencies = [
- "anymap2",
- "atomic_refcell",
- "enum-map",
- "fxhash",
- "hashbrown 0.17.1",
- "itertools 0.14.0",
- "num-traits",
- "once_cell",
- "rand 0.10.1",
- "rand_chacha 0.10.0",
- "rayon",
- "rmp-serde",
- "serde",
- "slotmap",
- "specs",
- "take-once",
- "tracing",
- "vek 0.17.2",
- "veloren-common",
- "veloren-world",
-]
-
-[[package]]
-name = "veloren-server"
-version = "0.18.0"
-dependencies = [
- "atomicwrites",
- "authc",
- "bincode",
- "censor",
- "chrono",
- "chrono-tz",
- "crossbeam-channel",
- "drop_guard",
- "enum-map",
- "futures-util",
- "hashbrown 0.17.1",
- "humantime",
- "itertools 0.14.0",
- "lazy_static",
- "noise",
- "num_cpus",
- "parking_lot",
- "portpicker",
- "prometheus",
- "quinn",
- "rand 0.10.1",
- "rayon",
- "refinery",
- "ron",
- "rusqlite",
- "rustls",
- "rustls-pemfile",
- "schnellru",
- "serde",
- "serde_json",
- "slotmap",
- "specs",
- "strum",
- "tokio",
- "tracing",
- "vek 0.17.2",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-ecs",
- "veloren-common-net",
- "veloren-common-state",
- "veloren-common-systems",
- "veloren-network",
- "veloren-query-server",
- "veloren-rtsim",
- "veloren-server-agent",
- "veloren-world",
-]
-
-[[package]]
-name = "veloren-server-agent"
-version = "0.18.0"
-dependencies = [
- "itertools 0.14.0",
- "lazy_static",
- "rand 0.10.1",
- "specs",
- "tracing",
- "vek 0.17.2",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-dynlib",
- "veloren-rtsim",
- "veloren-world",
-]
-
-[[package]]
-name = "veloren-server-cli"
-version = "0.18.0"
-dependencies = [
- "axum",
- "cansi",
- "chrono",
- "clap",
- "crossterm",
- "http-body-util",
- "hyper",
- "lazy_static",
- "mimalloc",
- "num_cpus",
- "prometheus",
- "rand 0.10.1",
- "ratatui",
- "ron",
- "serde",
- "shell-words",
- "signal-hook 0.4.4",
- "specs",
- "tokio",
- "tracing",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-frontend",
- "veloren-common-net",
- "veloren-server",
- "veloren-server-agent",
- "veloren-world",
-]
-
-[[package]]
-name = "veloren-voxygen"
-version = "0.18.0"
-dependencies = [
- "backtrace",
- "bitflags 2.13.0",
- "bytemuck",
- "chrono",
- "chumsky",
- "clap",
- "conrod_core",
- "cpal",
- "criterion",
- "crossbeam-channel",
- "crossbeam-utils 0.8.21",
- "directories-next",
- "discord-sdk",
- "dispatch",
- "dot_vox",
- "egui",
- "egui-wgpu",
- "egui-winit",
- "enum-map",
- "euc",
- "gilrs",
- "glyph_brush",
- "guillotiere",
- "hashbrown 0.17.1",
- "iced_native",
- "image",
- "inline_tweak",
- "itertools 0.14.0",
- "kira",
- "lazy_static",
- "levenshtein",
- "mimalloc",
- "mumble-link",
- "native-dialog",
- "num 0.4.3",
- "num_cpus",
- "open",
- "ordered-float 5.3.0",
- "rand 0.10.1",
- "rand_chacha 0.10.0",
- "rayon",
- "regex",
- "ron",
- "serde",
- "serde_with",
- "sha2 0.11.0",
- "shaderc",
- "slab",
- "specs",
- "strum",
- "tokio",
- "tracing",
- "treeculler",
- "vek 0.17.2",
- "veloren-client",
- "veloren-client-i18n",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-ecs",
- "veloren-common-frontend",
- "veloren-common-i18n",
- "veloren-common-net",
- "veloren-common-state",
- "veloren-common-systems",
- "veloren-server",
- "veloren-voxygen-anim",
- "veloren-voxygen-egui",
- "veloren-voxygen-i18n-helpers",
- "veloren-world",
- "wgpu",
- "wgpu-profiler",
- "window_clipboard",
- "winit",
- "winres",
-]
-
-[[package]]
-name = "veloren-voxygen-anim"
-version = "0.18.0"
-dependencies = [
- "bytemuck",
- "inline_tweak",
- "lazy_static",
- "vek 0.17.2",
- "veloren-common",
- "veloren-common-dynlib",
- "veloren-common-state",
-]
-
-[[package]]
-name = "veloren-voxygen-egui"
-version = "0.18.0"
-dependencies = [
- "egui",
- "egui-winit",
- "egui_plot",
- "lazy_static",
- "veloren-client",
- "veloren-common",
- "veloren-common-dynlib",
- "winit",
-]
-
-[[package]]
-name = "veloren-voxygen-i18n-helpers"
-version = "0.18.0"
-dependencies = [
- "rand 0.10.1",
- "tracing",
- "vek 0.17.2",
- "veloren-client-i18n",
- "veloren-common",
- "veloren-common-net",
-]
-
-[[package]]
-name = "veloren-world"
-version = "0.18.0"
-dependencies = [
- "arr_macro",
- "bincode",
- "bitvec",
- "clap",
- "criterion",
- "csv",
- "deflate",
- "delaunator",
- "enum-map",
- "enumset",
- "fallible-iterator",
- "fixed",
- "flate2",
- "fxhash",
- "hashbrown 0.17.1",
- "image",
- "indicatif",
- "itertools 0.14.0",
- "kiddo",
- "lazy_static",
- "lz-fear",
- "minifb",
- "noise",
- "num 0.4.3",
- "num-traits",
- "ordered-float 5.3.0",
- "rand 0.10.1",
- "rand_chacha 0.10.0",
- "rayon",
- "ron",
- "rstar",
- "rusqlite",
- "serde",
- "signal-hook 0.4.4",
- "strum",
- "svg_fmt",
- "tiny-skia 0.12.0",
- "tracing",
- "tracing-subscriber",
- "vek 0.17.2",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-dynlib",
- "veloren-common-frontend",
- "veloren-common-net",
 ]
 
 [[package]]

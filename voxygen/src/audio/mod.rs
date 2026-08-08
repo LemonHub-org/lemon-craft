@@ -830,11 +830,11 @@ impl AudioFrontend {
     }
 
     /// Switches the playing music to the title music, which is pinned to a
-    /// specific sound file (veloren_title_tune.ogg)
+    /// specific sound file (lemoncraft_title_tune.ogg)
     pub fn play_title_music(&mut self) {
         if self.music_enabled() {
             self.play_music(
-                "voxygen.audio.soundtrack.veloren_title_tune",
+                "voxygen.audio.soundtrack.lemoncraft_title_tune",
                 MusicChannelTag::TitleMusic,
                 43.0,
             );

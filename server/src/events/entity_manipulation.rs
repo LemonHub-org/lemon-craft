@@ -1058,7 +1058,7 @@ impl ServerEvent for DestroyEvent {
             // Award EXP to damage contributors
             //
             // NOTE: Debug logging is disabled by default for this module - to enable it add
-            // veloren_server::events::entity_manipulation=debug to RUST_LOG
+            // lemoncraft_server::events::entity_manipulation=debug to RUST_LOG
             'xp: {
                 let Some((
                     entity_skill_set,

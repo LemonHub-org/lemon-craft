@@ -25,13 +25,13 @@ use wasmtime_wasi::{
 
 pub(crate) mod types_mod {
     wasmtime::component::bindgen!({
-        path: "../../plugin/wit/veloren.wit",
+        path: "../../plugin/wit/lemoncraft.wit",
         world: "common-types",
     });
 }
 
 wasmtime::component::bindgen!({
-    path: "../../plugin/wit/veloren.wit",
+    path: "../../plugin/wit/lemoncraft.wit",
     world: "plugin",
     with: {
         "veloren:plugin/types@0.0.1": types_mod::veloren::plugin::types,
@@ -41,7 +41,7 @@ wasmtime::component::bindgen!({
 
 mod animation_plugin {
     wasmtime::component::bindgen!({
-        path: "../../plugin/wit/veloren.wit",
+        path: "../../plugin/wit/lemoncraft.wit",
         world: "animation-plugin",
         with: {
             "veloren:plugin/types@0.0.1": super::types_mod::veloren::plugin::types,
@@ -51,7 +51,7 @@ mod animation_plugin {
 
 mod server_plugin {
     wasmtime::component::bindgen!({
-        path: "../../plugin/wit/veloren.wit",
+        path: "../../plugin/wit/lemoncraft.wit",
         world: "server-plugin",
         with: {
             "veloren:plugin/types@0.0.1": super::types_mod::veloren::plugin::types,

@@ -76,7 +76,7 @@ impl Pid {
     ///
     /// # Example
     /// ```rust
-    /// use veloren_network_protocol::Pid;
+    /// use lemoncraft_network_protocol::Pid;
     ///
     /// let pid = Pid::new();
     /// ```

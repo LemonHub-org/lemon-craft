@@ -18,8 +18,8 @@ static GLOBAL: common_base::tracy_client::ProfiledAllocator<std::alloc::System> 
 
 use i18n::{self, LocalizationHandle};
 #[cfg(feature = "singleplayer")]
-use veloren_voxygen::singleplayer::SingleplayerState;
-use veloren_voxygen::{
+use lemoncraft_voxygen::singleplayer::SingleplayerState;
+use lemoncraft_voxygen::{
     GlobalState,
     audio::AudioFrontend,
     cli, panic_handler,
@@ -35,7 +35,7 @@ use common::clock::Clock;
 use std::{panic, path::PathBuf};
 use tracing::{info, warn};
 #[cfg(feature = "egui-ui")]
-use veloren_voxygen::ui::egui::EguiState;
+use lemoncraft_voxygen::ui::egui::EguiState;
 use wgpu::{Backends, Instance};
 
 fn main() {
@@ -186,7 +186,7 @@ fn main() {
     i18n.set_english_fallback(settings.language.use_english_fallback);
 
     // Create window
-    use veloren_voxygen::{error::Error, render::RenderError};
+    use lemoncraft_voxygen::{error::Error, render::RenderError};
     let (mut window, event_loop) = match Window::new(&settings, &tokio_runtime) {
         Ok(ok) => ok,
         // Custom panic message when a graphics backend could not be found
@@ -211,7 +211,7 @@ fn main() {
         Err(error) => panic!("Failed to create window!: {:?}", error),
     };
 
-    let clipboard = veloren_voxygen::ui::ice::Clipboard::connect(window.window());
+    let clipboard = lemoncraft_voxygen::ui::ice::Clipboard::connect(window.window());
 
     let lazy_init = SpriteRenderContext::new(window.renderer_mut());
 
@@ -220,9 +220,9 @@ fn main() {
 
     #[cfg(feature = "discord")]
     let discord = if settings.networking.enable_discord_integration {
-        veloren_voxygen::discord::Discord::start(&tokio_runtime)
+        lemoncraft_voxygen::discord::Discord::start(&tokio_runtime)
     } else {
-        veloren_voxygen::discord::Discord::Inactive
+        lemoncraft_voxygen::discord::Discord::Inactive
     };
 
     let global_state = GlobalState {

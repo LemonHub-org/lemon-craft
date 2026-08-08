@@ -8,13 +8,13 @@ time cargo clippy \
     --features="bin_cmd_doc_gen,bin_compression,bin_csv,bin_graphviz,bin_bot,bin_asset_migrate,bin,stat,cli" \
     -- -D warnings &&
 
-# Ensure that the veloren-voxygen default-publish feature builds as it excludes some default features.
+# Ensure that the lemoncraft-voxygen default-publish feature builds as it excludes some default features.
 time cargo clippy -p \
-    veloren-voxygen --locked \
+    lemoncraft-voxygen --locked \
     --no-default-features \
     --features="default-publish" \
     -- -D warnings &&
 
 # Ensure that test-server compiles.
-time cargo clippy --locked --bin veloren-server-cli --no-default-features -F simd  -- -D warnings &&
+time cargo clippy --locked --bin lemoncraft-server-cli --no-default-features -F simd  -- -D warnings &&
 time cargo fmt --all -- --check;

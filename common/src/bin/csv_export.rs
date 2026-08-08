@@ -8,7 +8,7 @@ use std::{
     ops::{Div, Mul},
 };
 
-use veloren_common::{
+use lemoncraft_common::{
     assets::{self, AssetExt, Ron},
     comp::{
         self,
