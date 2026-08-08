@@ -1,10 +1,10 @@
 use common_assets::find_root;
-use std::{fs, io::Write, path::Path};
 use lemoncraft_client_i18n::{
     REFERENCE_LANG,
     analysis::{Language, ReferenceLanguage},
     list_localizations,
 };
+use std::{fs, io::Write, path::Path};
 
 fn main() {
     let root = find_root().unwrap();

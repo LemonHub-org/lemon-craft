@@ -11,13 +11,11 @@ workspace = true
 use-dyn-lib = ["lazy_static", "common-dynlib"]
 be-dyn-lib = []
 simd = ["vek/platform_intrinsics"]
-plugins = [ "dep:common-state", "common-state/plugins"]
 
 default = ["simd"]
 
 [dependencies]
 common = {package = "lemoncraft-common", path = "../../common"}
-common-state = {package = "lemoncraft-common-state", path = "../../common/state", optional = true}
 bytemuck = { version = "1.4", features=["derive"] }
 vek = { workspace = true }
 common-dynlib = {package = "lemoncraft-common-dynlib", path = "../../common/dynlib", optional = true}

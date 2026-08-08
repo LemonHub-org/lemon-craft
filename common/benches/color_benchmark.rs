@@ -1,8 +1,8 @@
 use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
 
-use vek::*;
 use lemoncraft_common::util::{linear_to_srgb, srgb_to_linear_fast};
+use vek::*;
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut c = c.benchmark_group("color");

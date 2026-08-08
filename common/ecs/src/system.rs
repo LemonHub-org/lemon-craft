@@ -216,8 +216,8 @@ pub fn gen_stats(
 /// metrics collection
 ///
 /// ```
-/// use specs::Read;
 /// pub use lemoncraft_common_ecs::{Job, Origin, ParMode, Phase, System};
+/// use specs::Read;
 /// # use std::time::Duration;
 /// pub struct Sys;
 /// impl<'a> System<'a> for Sys {

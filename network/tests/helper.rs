@@ -1,4 +1,5 @@
 use lazy_static::*;
+use lemoncraft_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises, Stream};
 use rustls::pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer};
 use std::{
     net::{Ipv4Addr, SocketAddr},
@@ -12,7 +13,6 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use lemoncraft_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises, Stream};
 
 // sleep time when only internal rust calculations are done
 pub const SLEEP_INTERNAL: Duration = Duration::from_millis(3000);

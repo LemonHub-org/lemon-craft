@@ -17,9 +17,6 @@ event_emitters! {
         command: event::CommandEvent,
         client_disconnect: event::ClientDisconnectEvent,
         chat: event::ChatEvent,
-
-        #[cfg(feature = "plugins")]
-        plugins: event::RequestPluginsEvent,
     }
 }
 
@@ -77,12 +74,6 @@ impl Sys {
                     entity,
                     common::comp::DisconnectReason::ClientRequested,
                 ));
-            },
-            ClientGeneral::RequestPlugins(plugins) => {
-                tracing::info!("Plugin request {plugins:x?}, {}", player.is_some());
-
-                #[cfg(feature = "plugins")]
-                emitters.emit(event::RequestPluginsEvent { entity, plugins });
             },
             _ => {
                 debug!("Kicking possible misbehaving client due to invalid message request");

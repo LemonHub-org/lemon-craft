@@ -7,6 +7,11 @@ use common::{
     },
     vol::RectVolSize,
 };
+use lemoncraft_world::{
+    CONFIG, ColumnSample, World,
+    sim::{self, DEFAULT_WORLD_SEED, WorldOpts, get_horizon_map, sample_pos, sample_wpos},
+    util::Sampler,
+};
 use rayon::prelude::*;
 use std::{f64, io::Write, path::PathBuf, time::SystemTime};
 use tracing::{Level, warn};
@@ -15,11 +20,6 @@ use tracing_subscriber::{
     filter::{EnvFilter, LevelFilter},
 };
 use vek::*;
-use lemoncraft_world::{
-    CONFIG, ColumnSample, World,
-    sim::{self, DEFAULT_WORLD_SEED, WorldOpts, get_horizon_map, sample_pos, sample_wpos},
-    util::Sampler,
-};
 
 const W: usize = 1024;
 const H: usize = 1024;

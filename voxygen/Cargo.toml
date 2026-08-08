@@ -31,7 +31,6 @@ simd = ["vek/platform_intrinsics"]
 tracy = ["common-frontend/tracy", "client/tracy", "wgpu-profiler/tracy"]
 # enables heap profiling with tracy
 tracy-memory = ["tracy"]
-plugins = ["client/plugins", "server/plugins", "anim/plugins", "common/plugins"]
 egui-ui = ["voxygen-egui", "egui", "egui-wgpu", "egui-winit"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
@@ -41,7 +40,6 @@ bin_cmd_doc_gen = []
 default-publish = [
     "singleplayer",
     "native-dialog",
-    "plugins",
     "discord",
     "simd",
 ]

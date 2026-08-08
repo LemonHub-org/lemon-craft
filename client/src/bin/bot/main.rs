@@ -3,11 +3,11 @@
 use authc::AuthClient;
 use common::{clock::Clock, comp};
 use hashbrown::HashMap;
+use lemoncraft_client::{Client, ClientType, addr::ConnectionArgs};
 use serde::{Deserialize, Serialize};
 use std::{sync::Arc, time::Duration};
 use tokio::runtime::Runtime;
 use tracing::{info, trace, warn};
-use lemoncraft_client::{Client, ClientType, addr::ConnectionArgs};
 
 mod settings;
 mod tui;

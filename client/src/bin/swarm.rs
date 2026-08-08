@@ -5,6 +5,7 @@ use common::{
     vol::RectVolSize,
 };
 use hashbrown::HashSet;
+use lemoncraft_client::{Client, ClientType, addr::ConnectionArgs};
 use std::{
     sync::{
         Arc,
@@ -15,7 +16,6 @@ use std::{
 };
 use tokio::runtime::Runtime;
 use vek::*;
-use lemoncraft_client::{Client, ClientType, addr::ConnectionArgs};
 
 const CHUNK_SIZE: f32 = TerrainChunkSize::RECT_SIZE.x as f32;
 

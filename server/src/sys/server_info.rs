@@ -3,9 +3,9 @@ use common::{
     util::{GIT_HASH, GIT_TIMESTAMP},
 };
 use common_ecs::{Origin, Phase, System};
+use lemoncraft_query_server::proto::ServerInfo;
 use specs::{Join, Read, ReadStorage};
 use tracing::warn;
-use lemoncraft_query_server::proto::ServerInfo;
 
 use crate::{Settings, Tick, client::Client};
 

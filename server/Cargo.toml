@@ -10,13 +10,12 @@ workspace = true
 [features]
 worldgen = ["server-agent/worldgen"]
 simd = ["vek/platform_intrinsics"]
-plugins = ["common-state/plugins", "common-systems/plugins", "common/plugins"]
 persistent_world = []
 hot-reloading = ["common/hot-reloading"]
 hot-agent = ["server-agent/use-dyn-lib"]
 hot-site = ["world/use-dyn-lib"]
 
-default = ["worldgen", "plugins", "persistent_world", "simd"]
+default = ["worldgen", "persistent_world", "simd"]
 
 [dependencies]
 common = { package = "lemoncraft-common", path = "../common" }

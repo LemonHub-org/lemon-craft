@@ -10,7 +10,7 @@ use common::{
         self, AdminRole, Content, body::Gender, gizmos::Gizmos, invite::InviteKind,
         item::MaterialStatManifest,
     },
-    event::{PluginHash, UpdateCharacterMetadata},
+    event::UpdateCharacterMetadata,
     lod,
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBookManifest},
@@ -79,7 +79,6 @@ pub enum ServerInit {
         ability_map: comp::item::tool::AbilityMap,
         server_constants: ServerConstants,
         description: ServerDescription,
-        active_plugins: Vec<PluginHash>,
     },
 }
 
@@ -225,8 +224,6 @@ pub enum ServerGeneral {
     /// Suggest the client to spectate a position. Called after client has
     /// requested teleport etc.
     SpectatePosition(Vec3<f32>),
-    /// Plugin data requested from the server
-    PluginData(Vec<u8>),
     /// Update the list of available recipes. Usually called after a new recipe
     /// is acquired
     UpdateRecipes,
@@ -397,7 +394,6 @@ impl ServerMsg {
                         | ServerGeneral::Notification(_)
                         | ServerGeneral::SetPlayerRole(_)
                         | ServerGeneral::LodZoneUpdate { .. } => true,
-                        ServerGeneral::PluginData(_) => true,
                     }
             },
             ServerMsg::Ping(_) => true,

@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use clap::Parser;
-use tracing::{error, info};
 use lemoncraft_query_server::client::QueryClient;
+use tracing::{error, info};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

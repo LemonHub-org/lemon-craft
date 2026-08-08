@@ -3,7 +3,6 @@ use common::{
     ViewDistances,
     character::CharacterId,
     comp::{self, AdminRole, Skill},
-    event::PluginHash,
     resources::BattleMode,
     terrain::block::Block,
 };
@@ -130,7 +129,6 @@ pub enum ClientGeneral {
     RequestLossyTerrainCompression {
         lossy_terrain_compression: bool,
     },
-    RequestPlugins(Vec<PluginHash>),
 }
 
 impl ClientMsg {
@@ -187,7 +185,6 @@ impl ClientMsg {
                         | ClientGeneral::Terminate
                         // LodZoneRequest is required by the char select screen
                         | ClientGeneral::LodZoneRequest { .. } => true,
-                        | ClientGeneral::RequestPlugins(_) => true,
                     }
             },
             ClientMsg::Ping(_) => true,

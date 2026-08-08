@@ -16,9 +16,6 @@ pub use common::event::{
     UpdateCharacterDataEvent, UpdateMapMarkerEvent,
 };
 
-#[cfg(feature = "plugins")]
-pub use common::event::RequestPluginsEvent;
-
 /// X-macro that provides list of server events to the macro this is called
 /// with.
 macro_rules! server_events {
@@ -94,11 +91,6 @@ macro_rules! server_events {
             SummonBeamPillarsEvent
             ArcingEvent
             CreatePoolEvent
-        }
-
-        #[cfg(feature = "plugins")]
-        $macro! {
-            RequestPluginsEvent
         }
     };
 }

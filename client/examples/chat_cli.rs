@@ -3,6 +3,7 @@
 
 use client_i18n::LocalizationHandle;
 use common::{clock::Clock, comp};
+use lemoncraft_client::{Client, ClientType, Event, addr::ConnectionArgs};
 use std::{
     io,
     sync::{Arc, mpsc},
@@ -11,7 +12,6 @@ use std::{
 };
 use tokio::runtime::Runtime;
 use tracing::{error, info};
-use lemoncraft_client::{Client, ClientType, Event, addr::ConnectionArgs};
 use voxygen_i18n_helpers::localize_chat_message;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.

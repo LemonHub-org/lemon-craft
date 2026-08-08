@@ -15,8 +15,6 @@ use crate::{
 use client::{self, Client};
 use common::{comp, event::UpdateCharacterMetadata, resources::DeltaTime};
 use common_base::span;
-#[cfg(feature = "plugins")]
-use common_state::plugin::PluginMgr;
 use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc};
 use tracing::error;
@@ -80,9 +78,7 @@ impl CharSelectionState {
 impl PlayState for CharSelectionState {
     fn enter(&mut self, global_state: &mut GlobalState, _: Direction) {
         // Load the player's character list
-        if !self.client.borrow().are_plugins_missing() {
-            self.client.borrow_mut().load_character_list();
-        }
+        self.client.borrow_mut().load_character_list();
 
         // Updated localization in case the selected language was changed
         self.char_selection_ui.update_language(global_state.i18n);
@@ -290,28 +286,6 @@ impl PlayState for CharSelectionState {
                             },
                             client::Event::CharacterJoined(metadata) => {
                                 join_metadata = Some(metadata);
-                            },
-                            #[cfg_attr(not(feature = "plugins"), expect(unused_variables))]
-                            client::Event::PluginDataReceived(data) => {
-                                #[cfg(feature = "plugins")]
-                                {
-                                    tracing::info!("plugin data {}", data.len());
-                                    let mut client = self.client.borrow_mut();
-                                    let hash = client
-                                        .state()
-                                        .ecs()
-                                        .write_resource::<PluginMgr>()
-                                        .cache_server_plugin(&global_state.config_dir, data);
-                                    match hash {
-                                        Ok(hash) => {
-                                            if client.plugin_received(hash) == 0 {
-                                                // now load characters (plugins might contain items)
-                                                client.load_character_list();
-                                            }
-                                        },
-                                        Err(e) => tracing::error!(?e, "cache_server_plugin"),
-                                    }
-                                }
                             },
                             // TODO: See if we should handle StartSpectate here instead.
                             _ => {},

@@ -1,6 +1,4 @@
 use common::terrain::CoordinateConversions;
-use rayon::ThreadPoolBuilder;
-use vek::Vec2;
 use lemoncraft_world::{
     CanvasInfo, Land, World,
     layer::{
@@ -9,6 +7,8 @@ use lemoncraft_world::{
     },
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
+use rayon::ThreadPoolBuilder;
+use vek::Vec2;
 
 fn main() {
     let pool = ThreadPoolBuilder::new().build().unwrap();

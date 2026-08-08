@@ -334,8 +334,6 @@ impl Body {
                 let dim = self.dimensions().map(|a| a * scale);
                 (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
             },
-
-            Body::Plugin(body) => body.parasite_drag(),
         }
     }
 }

@@ -98,6 +98,7 @@ use common_net::{
 };
 use common_state::{AreasContainer, BlockDiff, BuildArea, State};
 use common_systems::add_local_systems;
+use lemoncraft_query_server::server::QueryServer;
 use metrics::{EcsSystemMetrics, GameplayMetrics, PhysicsMetrics, TickMetrics};
 use network::{ListenAddr, Network, Pid};
 use persistence::{
@@ -120,7 +121,6 @@ use test_world::{IndexOwned, World};
 use tokio::runtime::Runtime;
 use tracing::{debug, error, info, trace, warn};
 use vek::*;
-use lemoncraft_query_server::server::QueryServer;
 pub use world::{WorldGenerateStage, civ::WorldCivStage, sim::WorldSimStage};
 
 use crate::{
@@ -131,12 +131,6 @@ use hashbrown::HashMap;
 use std::sync::RwLock;
 
 use crate::settings::Protocol;
-
-#[cfg(feature = "plugins")]
-use {
-    common::uid::IdMaps,
-    common_state::plugin::{PluginMgr, memory_manager::EcsWorld},
-};
 
 use crate::{chat::ChatCache, persistence::character_loader::CharacterScreenResponseKind};
 use common::comp::Anchor;
@@ -297,10 +291,6 @@ impl Server {
 
         let pools = State::pools(GameMode::Server);
 
-        // Load plugins before generating the world.
-        #[cfg(feature = "plugins")]
-        let plugin_mgr = PluginMgr::from_asset_or_default();
-
         debug!("Generating world, seed: {}", settings.world_seed);
         #[cfg(feature = "worldgen")]
         let (world, index) = World::generate(
@@ -361,8 +351,6 @@ impl Server {
                     weather::add_server_systems(dispatcher_builder);
                 }
             },
-            #[cfg(feature = "plugins")]
-            plugin_mgr,
         );
         events::register_event_busses(state.ecs_mut());
         state.ecs_mut().insert(battlemode_buffer);
@@ -650,8 +638,9 @@ impl Server {
                 });
             let mut query_server =
                 QueryServer::new(addr, query_server_info_rx, QUERY_SERVER_RATELIMIT);
-            let query_server_metrics =
-                Arc::new(Mutex::new(lemoncraft_query_server::server::Metrics::default()));
+            let query_server_metrics = Arc::new(Mutex::new(
+                lemoncraft_query_server::server::Metrics::default(),
+            ));
             let query_server_metrics2 = Arc::clone(&query_server_metrics);
             runtime.spawn(async move {
                 let err = query_server.run(query_server_metrics2).await.err();
@@ -1385,77 +1374,15 @@ impl Server {
         if let Ok(command) = name.parse::<ServerChatCommand>() {
             command.execute(self, entity, args);
         } else {
-            #[cfg(feature = "plugins")]
-            {
-                let mut plugin_manager = self.state.ecs().write_resource::<PluginMgr>();
-                let ecs_world = EcsWorld {
-                    entities: &self.state.ecs().entities(),
-                    health: self.state.ecs().read_component().into(),
-                    uid: self.state.ecs().read_component().into(),
-                    id_maps: &self.state.ecs().read_resource::<IdMaps>().into(),
-                    player: self.state.ecs().read_component().into(),
-                };
-                let uid = if let Some(uid) = ecs_world.uid.get(entity).copied() {
-                    uid
-                } else {
-                    self.notify_client(
-                        entity,
-                        ServerGeneral::server_msg(
-                            comp::ChatType::CommandError,
-                            common::comp::Content::Plain(
-                                "Can't get player UUID (player may be disconnected?)".to_string(),
-                            ),
-                        ),
-                    );
-                    return;
-                };
-                match plugin_manager.command_event(&ecs_world, &name, args.as_slice(), uid) {
-                    Err(common_state::plugin::CommandResults::UnknownCommand) => self
-                        .notify_client(
-                            entity,
-                            ServerGeneral::server_msg(
-                                comp::ChatType::CommandError,
-                                common::comp::Content::Plain(format!(
-                                    "Unknown command '/{name}'.\nType '/help' for available \
-                                     commands",
-                                )),
-                            ),
-                        ),
-                    Ok(value) => {
-                        self.notify_client(
-                            entity,
-                            ServerGeneral::server_msg(
-                                comp::ChatType::CommandInfo,
-                                common::comp::Content::Plain(value.join("\n")),
-                            ),
-                        );
-                    },
-                    Err(common_state::plugin::CommandResults::PluginError(err)) => {
-                        self.notify_client(
-                            entity,
-                            ServerGeneral::server_msg(
-                                comp::ChatType::CommandError,
-                                common::comp::Content::Plain(format!(
-                                    "Error occurred while executing command '/{name}'.\n{err}"
-                                )),
-                            ),
-                        );
-                    },
-                    Err(common_state::plugin::CommandResults::HostError(err)) => {
-                        error!(?err, ?name, ?args, "Can't execute command");
-                        self.notify_client(
-                            entity,
-                            ServerGeneral::server_msg(
-                                comp::ChatType::CommandError,
-                                common::comp::Content::Plain(format!(
-                                    "Internal error {err:?} while executing '/{name}'.\nContact \
-                                     the server administrator",
-                                )),
-                            ),
-                        );
-                    },
-                }
-            }
+            self.notify_client(
+                entity,
+                ServerGeneral::server_msg(
+                    comp::ChatType::CommandError,
+                    common::comp::Content::Plain(format!(
+                        "Unknown command '/{name}'.\nType '/help' for available commands",
+                    )),
+                ),
+            );
         }
     }
 

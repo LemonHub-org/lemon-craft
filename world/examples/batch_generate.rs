@@ -19,16 +19,16 @@ use common::{
 };
 use image::{DynamicImage, GenericImage, ImageEncoder, codecs::png::PngEncoder};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use lemoncraft_world::{
+    CONFIG, IndexOwned, World, WorldGenerateStage,
+    sim::{FileOpts, GenOpts, WorldOpts, WorldSimStage, get_horizon_map, sample_pos, sample_wpos},
+};
 use rand::{RngExt, rng};
 use rayon::ThreadPool;
 use serde::{Deserialize, Serialize};
 use tracing::{Level, Span, debug, error, info, info_span};
 use tracing_subscriber::EnvFilter;
 use vek::{Aabr, Rgb, Vec2};
-use lemoncraft_world::{
-    CONFIG, IndexOwned, World, WorldGenerateStage,
-    sim::{FileOpts, GenOpts, WorldOpts, WorldSimStage, get_horizon_map, sample_pos, sample_wpos},
-};
 
 #[derive(Parser)]
 struct Cli {

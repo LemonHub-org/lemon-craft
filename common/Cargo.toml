@@ -16,7 +16,6 @@ bin_graphviz = ["petgraph", "clap"]
 bin_asset_migrate = []
 rrt_pathfinding = ["kiddo"]
 calendar_events = []
-plugins = ["common-assets/plugins"]
 
 default = ["simd"]
 

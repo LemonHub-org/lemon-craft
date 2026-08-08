@@ -1,8 +1,8 @@
-use std::time::Instant;
 use lemoncraft_world::{
     World,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
+use std::time::Instant;
 
 fn main() {
     let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();

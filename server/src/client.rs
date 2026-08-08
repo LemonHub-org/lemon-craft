@@ -224,8 +224,7 @@ impl Client {
                     | ServerGeneral::DeleteEntity(_)
                     | ServerGeneral::Disconnect(_)
                     | ServerGeneral::Notification(_)
-                    | ServerGeneral::SetPlayerRole(_)
-                    | ServerGeneral::PluginData(_) => {
+                    | ServerGeneral::SetPlayerRole(_) => {
                         PreparedMsg::new(3, &g, &self.general_stream_params)
                     },
                 }

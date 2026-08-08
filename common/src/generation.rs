@@ -101,8 +101,8 @@ pub enum Meta {
 ///
 /// # Example
 /// ```
-/// use vek::Vec3;
 /// use lemoncraft_common::generation::EntityInfo;
+/// use vek::Vec3;
 ///
 /// // create new EntityInfo at dummy position
 /// // and fill it with template config

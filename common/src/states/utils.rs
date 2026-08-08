@@ -197,7 +197,6 @@ impl Body {
                 crustacean::Species::Crab | crustacean::Species::SoldierCrab => 80.0,
                 crustacean::Species::Karkatha => 120.0,
             },
-            Body::Plugin(body) => body.base_accel(),
         }
     }
 
@@ -281,7 +280,6 @@ impl Body {
             Body::Ship(_) => 6.0 / self.dimensions().y,
             Body::Arthropod(_) => 3.5,
             Body::Crustacean(_) => 3.5,
-            Body::Plugin(body) => body.base_ori_rate(),
         }
     }
 
@@ -330,7 +328,6 @@ impl Body {
                 Body::QuadrupedSmall(_) => 1500.0 * self.mass().0,
                 Body::Arthropod(_) => 500.0 * self.mass().0,
                 Body::Crustacean(_) => 400.0 * self.mass().0,
-                Body::Plugin(body) => body.swim_thrust()?,
             } * front_profile,
         )
     }

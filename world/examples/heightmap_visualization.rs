@@ -2,13 +2,13 @@ use image::{
     ImageBuffer, ImageEncoder,
     codecs::png::{CompressionType, FilterType, PngEncoder},
 };
-use rayon::ThreadPoolBuilder;
-use std::{fs::File, io::Write};
-use vek::*;
 use lemoncraft_world::{
     Land, World,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
+use rayon::ThreadPoolBuilder;
+use std::{fs::File, io::Write};
+use vek::*;
 
 fn grey_from_scalar(lo: f32, hi: f32, x: f32) -> [u8; 3] {
     let y = (x - lo) / (hi - lo);

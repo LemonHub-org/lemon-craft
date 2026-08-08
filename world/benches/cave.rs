@@ -1,11 +1,11 @@
 use common::{spiral::Spiral2d, terrain::CoordinateConversions};
 use criterion::{Criterion, criterion_group, criterion_main};
-use rayon::ThreadPoolBuilder;
-use std::hint::black_box;
 use lemoncraft_world::{
     CanvasInfo, Land, World, layer,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
+use rayon::ThreadPoolBuilder;
+use std::hint::black_box;
 
 fn cave(c: &mut Criterion) {
     let pool = ThreadPoolBuilder::new().build().unwrap();

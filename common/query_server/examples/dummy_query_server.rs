@@ -4,13 +4,13 @@ use std::{
     time::Instant,
 };
 
-use tokio::sync::watch;
-use tracing::error;
 use lemoncraft_query_server::{
     client::QueryClient,
     proto::{ServerBattleMode, ServerInfo},
     server::{Metrics, QueryServer},
 };
+use tokio::sync::watch;
+use tracing::error;
 
 const DEFAULT_SERVER_INFO: ServerInfo = ServerInfo {
     git_hash: 0,

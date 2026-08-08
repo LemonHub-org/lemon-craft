@@ -25,8 +25,8 @@ const RUST_LOG_ENV: &str = "RUST_LOG";
 ///
 /// more complex tracing can be done by concatenating with a `,` as separator:
 ///  - warn for `prometheus_hyper`, `dot_vox`, `gfx_device_gl::factory,
-///    `gfx_device_gl::shade` trace for `lemoncraft_voxygen`, info for everything
-///    else
+///    `gfx_device_gl::shade` trace for `lemoncraft_voxygen`, info for
+///    everything else
 ///
 /// `RUST_LOG="prometheus_hyper=warn,dot_vox::parser=warn,gfx_device_gl::
 /// factory=warn,gfx_device_gl::shade=warn,lemoncraft_voxygen=trace,info"`

@@ -1,16 +1,16 @@
 use clap::Parser;
 use hashbrown::HashMap;
-use petgraph::{
-    Graph,
-    dot::{Config, Dot},
-};
-use std::{fs::File, io::Write};
 use lemoncraft_common::comp::{
     item::tool::ToolKind,
     skillset::{
         SKILL_GROUP_DEFS, SKILL_PREREQUISITES, SkillGroupKind, SkillPrerequisite, skills::Skill,
     },
 };
+use petgraph::{
+    Graph,
+    dot::{Config, Dot},
+};
+use std::{fs::File, io::Write};
 
 #[derive(Parser)]
 struct Cli {

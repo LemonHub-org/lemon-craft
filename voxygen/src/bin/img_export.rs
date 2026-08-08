@@ -372,7 +372,6 @@ fn load_npc_bones(
         ),
         Body::Item(_) => panic!("Item bodies aren't supported"),
         Body::Ship(_) => panic!("Ship bodies aren't supported"),
-        Body::Plugin(_) => panic!("Plugin bodies aren't supported"),
     };
 
     let tool_info = |equip_slot| {
@@ -628,7 +627,6 @@ fn load_npc_bones(
         },
         Body::Item(_) => panic!("Item bodies aren't supported"),
         Body::Ship(_) => panic!("Ship bodies aren't supported"),
-        Body::Plugin(_) => panic!("Plugin bodies aren't supported"),
     };
 
     let mut bones: Vec<_> = bone_segments

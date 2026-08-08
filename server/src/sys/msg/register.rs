@@ -30,9 +30,6 @@ use specs::{
 };
 use tracing::{debug, info, trace, warn};
 
-#[cfg(feature = "plugins")]
-use common_state::plugin::PluginMgr;
-
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
@@ -49,8 +46,6 @@ pub struct ReadData<'a> {
     recipe_book: ReadExpect<'a, common::recipe::RecipeBookManifest>,
     map: ReadExpect<'a, WorldMapMsg>,
     trackers: TrackedStorages<'a>,
-    #[cfg(feature = "plugins")]
-    plugin_mgr: Read<'a, PluginMgr>,
     data_dir: ReadExpect<'a, crate::DataDir>,
 }
 
@@ -368,11 +363,6 @@ impl<'a> System<'a> for Sys {
                         // Tell the client its request was successful.
                         client.send(Ok(()))?;
 
-                        #[cfg(feature = "plugins")]
-                        let active_plugins = read_data.plugin_mgr.plugin_list();
-                        #[cfg(not(feature = "plugins"))]
-                        let active_plugins = Vec::default();
-
                         let server_descriptions = &editable_settings.server_description;
                         let description = ServerDescription {
                             motd: server_descriptions
@@ -405,7 +395,6 @@ impl<'a> System<'a> for Sys {
                                 day_cycle_coefficient: read_data.settings.day_cycle_coefficient(),
                             },
                             description,
-                            active_plugins,
                         })?;
                         debug!("Done initial sync with client.");
 

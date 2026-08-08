@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use common_assets::{AssetExt, Ron};
 use hashbrown::HashSet;
-use strum::IntoEnumIterator;
 use lemoncraft_common::{
     cmd,
     comp::{
@@ -17,6 +16,7 @@ use lemoncraft_common::{
     recipe::{RecipeBookManifest, RecipeInput},
     terrain::SpriteKind,
 };
+use strum::IntoEnumIterator;
 
 #[derive(Default)]
 struct Used {

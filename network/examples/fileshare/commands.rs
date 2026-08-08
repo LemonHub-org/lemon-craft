@@ -1,8 +1,8 @@
+use lemoncraft_network::{ConnectAddr, Participant, Stream};
 use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tokio::fs;
-use lemoncraft_network::{ConnectAddr, Participant, Stream};
 
 use std::collections::HashMap;
 

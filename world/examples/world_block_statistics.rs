@@ -19,6 +19,10 @@ use rayon::{
 };
 use rusqlite::{Connection, ToSql, Transaction, TransactionBehavior};
 //use serde::{Serialize, Deserialize};
+use lemoncraft_world::{
+    World,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
+};
 use std::{
     cmp::Ordering,
     collections::{HashMap, HashSet},
@@ -31,10 +35,6 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 use vek::*;
-use lemoncraft_world::{
-    World,
-    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
-};
 
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq /* , Serialize, Deserialize */)]
 struct KiddoRgb(Rgb<U8F0>);

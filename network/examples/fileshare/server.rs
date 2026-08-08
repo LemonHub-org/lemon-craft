@@ -1,5 +1,6 @@
 use crate::commands::{Command, FileInfo, LocalCommand, RemoteInfo};
 use futures_util::StreamExt;
+use lemoncraft_network::{ListenAddr, Network, Participant, Pid, Promises, Stream};
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 use tokio::{
     fs, join,
@@ -8,7 +9,6 @@ use tokio::{
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
-use lemoncraft_network::{ListenAddr, Network, Participant, Pid, Promises, Stream};
 
 #[derive(Debug)]
 struct ControlChannels {

@@ -4,11 +4,11 @@
 //! RUST_BACKTRACE=1 cargo run --example chat -- --trace=info --port 15006 --mode=client
 //! ```
 use clap::{Arg, Command};
+use lemoncraft_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises, Stream};
 use std::{sync::Arc, thread, time::Duration};
 use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::RwLock};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use lemoncraft_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises, Stream};
 
 ///This example contains a simple chatserver, that allows to send messages
 /// between participants, it's neither pretty nor perfect, but it should show

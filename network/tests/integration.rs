@@ -1,10 +1,10 @@
+use lemoncraft_network::{NetworkError, StreamError};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
-use lemoncraft_network::{NetworkError, StreamError};
 mod helper;
 use helper::{SLEEP_EXTERNAL, SLEEP_INTERNAL, mpsc, network_participant_stream, quic, tcp, udp};
-use std::io::ErrorKind;
 use lemoncraft_network::{ConnectAddr, ListenAddr, Network, ParticipantEvent, Pid, Promises};
+use std::io::ErrorKind;
 
 #[test]
 fn stream_simple() {

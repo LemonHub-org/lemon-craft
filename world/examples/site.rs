@@ -1,5 +1,5 @@
-use svg_fmt::*;
 use lemoncraft_world::site::test_site;
+use svg_fmt::*;
 
 fn main() {
     let site = test_site();

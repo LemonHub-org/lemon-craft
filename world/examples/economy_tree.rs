@@ -1,6 +1,6 @@
 use common::trade::Good;
-use std::io::Write;
 use lemoncraft_world::site::economy::{GraphInfo, Labor};
+use std::io::Write;
 //use regex::Regex::replace_all;
 
 fn good_name(g: Good) -> String {

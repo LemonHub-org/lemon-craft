@@ -5,10 +5,6 @@ use common::{
 };
 use criterion::{Criterion, criterion_group, criterion_main};
 use hashbrown::HashMap;
-use rand::prelude::*;
-use rayon::ThreadPoolBuilder;
-use std::hint::black_box;
-use vek::{Vec2, Vec3};
 use lemoncraft_world::{
     CanvasInfo, Land, World,
     sim::{DEFAULT_WORLD_MAP, FileOpts, WorldOpts},
@@ -17,6 +13,10 @@ use lemoncraft_world::{
         plot::{PlotKind, foreach_plot},
     },
 };
+use rand::prelude::*;
+use rayon::ThreadPoolBuilder;
+use std::hint::black_box;
+use vek::{Vec2, Vec3};
 
 #[allow(dead_code)]
 fn count_prim_kinds(prims: &Store<Primitive>) -> HashMap<String, usize> {

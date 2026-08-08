@@ -272,8 +272,7 @@ impl Sys {
             | ClientGeneral::LodZoneRequest { .. }
             | ClientGeneral::ChatMsg(_)
             | ClientGeneral::Command(..)
-            | ClientGeneral::Terminate
-            | ClientGeneral::RequestPlugins(_) => {
+            | ClientGeneral::Terminate => {
                 debug!("Kicking possibly misbehaving client due to invalid client in game request");
                 emitters.emit(event::ClientDisconnectEvent(
                     entity,

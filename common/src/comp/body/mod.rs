@@ -12,7 +12,6 @@ pub mod humanoid;
 pub mod item;
 pub mod object;
 pub mod parts;
-pub mod plugin;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
@@ -57,7 +56,6 @@ enum_iter! {
         Arthropod(arthropod::Body) = 15,
         Item(item::Body) = 16,
         Crustacean(crustacean::Body) = 17,
-        Plugin(plugin::Body) = 18,
     }
 }
 
@@ -105,7 +103,6 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub ship: BodyData<BodyMeta, ()>,
     pub arthropod: BodyData<BodyMeta, arthropod::AllSpecies<SpeciesMeta>>,
     pub crustacean: BodyData<BodyMeta, crustacean::AllSpecies<SpeciesMeta>>,
-    pub plugin: BodyData<BodyMeta, plugin::AllSpecies<SpeciesMeta>>,
 }
 
 impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
@@ -130,7 +127,6 @@ impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
             Body::QuadrupedLow(b) => &self.quadruped_low.species[&b.species],
             Body::Arthropod(b) => &self.arthropod.species[&b.species],
             Body::Crustacean(b) => &self.crustacean.species[&b.species],
-            Body::Plugin(b) => &self.plugin.species[&b.species],
             Body::Item(_) | Body::Ship(_) | Body::Object(_) => return None,
         })
     }
@@ -158,7 +154,6 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Crocodile => &self.quadruped_low.body,
             NpcKind::Tarantula => &self.arthropod.body,
             NpcKind::Crab => &self.crustacean.body,
-            NpcKind::Plugin => &self.plugin.body,
         }
     }
 }
@@ -188,7 +183,6 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<&Body> for AllBodies<BodyMeta, Spec
             Body::Arthropod(_) => &self.arthropod.body,
             Body::Ship(_) => &self.ship.body,
             Body::Crustacean(_) => &self.crustacean.body,
-            Body::Plugin(_) => &self.plugin.body,
         }
     }
 }
@@ -286,10 +280,6 @@ impl Body {
                 Body::Crustacean(b2) => b1.species == b2.species,
                 _ => false,
             },
-            Body::Plugin(b1) => match other {
-                Body::Plugin(b2) => b1.species == b2.species,
-                _ => false,
-            },
         }
     }
 
@@ -326,8 +316,7 @@ impl Body {
             | Body::QuadrupedLow(_)
             | Body::Ship(_)
             | Body::Arthropod(_)
-            | Body::Item(_)
-            | Body::Plugin(_) => false,
+            | Body::Item(_) => false,
         }
     }
 
@@ -560,7 +549,6 @@ impl Body {
                 crustacean::Species::Crab | crustacean::Species::SoldierCrab => 50.0,
                 crustacean::Species::Karkatha => 1200.0,
             },
-            Body::Plugin(body) => body.mass().0,
         };
         Mass(m)
     }
@@ -837,7 +825,6 @@ impl Body {
                 crustacean::Species::SoldierCrab => Vec3::new(1.2, 1.2, 1.0),
                 crustacean::Species::Karkatha => Vec3::new(10.0, 10.0, 7.5),
             },
-            Body::Plugin(body) => body.dimensions(),
         }
     }
 
@@ -1257,7 +1244,6 @@ impl Body {
                 crustacean::Species::SoldierCrab => 50,
                 crustacean::Species::Karkatha => 2000,
             },
-            Body::Plugin(body) => body.base_health(),
         }
     }
 
@@ -2024,7 +2010,6 @@ impl Body {
                 crustacean::BodyType::Female => Gender::Feminine,
             },
             // TODO: do smth about it
-            Body::Plugin(_) => Gender::Neuter,
             Body::Object(_) | Body::Ship(_) | Body::Item(_) => Gender::Neuter,
         }
     }

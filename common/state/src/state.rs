@@ -1,10 +1,4 @@
-#[cfg(feature = "plugins")]
-use crate::plugin::PluginMgr;
-#[cfg(feature = "plugins")]
-use crate::plugin::memory_manager::EcsWorld;
 use crate::{BuildArea, NoDurabilityArea};
-#[cfg(feature = "plugins")]
-use common::uid::IdMaps;
 use common::{
     calendar::Calendar,
     comp::{self, gizmos::RtsimGizmos},
@@ -206,7 +200,6 @@ impl State {
         map_size_lg: MapSizeLg,
         default_chunk: Arc<TerrainChunk>,
         add_systems: impl Fn(&mut DispatcherBuilder),
-        #[cfg(feature = "plugins")] plugin_mgr: PluginMgr,
     ) -> Self {
         Self::new(
             GameMode::Client,
@@ -214,8 +207,6 @@ impl State {
             map_size_lg,
             default_chunk,
             add_systems,
-            #[cfg(feature = "plugins")]
-            plugin_mgr,
         )
     }
 
@@ -225,7 +216,6 @@ impl State {
         map_size_lg: MapSizeLg,
         default_chunk: Arc<TerrainChunk>,
         add_systems: impl Fn(&mut DispatcherBuilder),
-        #[cfg(feature = "plugins")] plugin_mgr: PluginMgr,
     ) -> Self {
         Self::new(
             GameMode::Server,
@@ -233,8 +223,6 @@ impl State {
             map_size_lg,
             default_chunk,
             add_systems,
-            #[cfg(feature = "plugins")]
-            plugin_mgr,
         )
     }
 
@@ -244,7 +232,6 @@ impl State {
         map_size_lg: MapSizeLg,
         default_chunk: Arc<TerrainChunk>,
         add_systems: impl Fn(&mut DispatcherBuilder),
-        #[cfg(feature = "plugins")] plugin_mgr: PluginMgr,
     ) -> Self {
         prof_span!(guard, "create dispatcher");
         let mut dispatch_builder =
@@ -258,14 +245,7 @@ impl State {
         drop(guard);
 
         Self {
-            ecs: Self::setup_ecs_world(
-                game_mode,
-                Arc::clone(&pools),
-                map_size_lg,
-                default_chunk,
-                #[cfg(feature = "plugins")]
-                plugin_mgr,
-            ),
+            ecs: Self::setup_ecs_world(game_mode, Arc::clone(&pools), map_size_lg, default_chunk),
             thread_pool: pools,
             dispatcher,
         }
@@ -279,7 +259,6 @@ impl State {
         thread_pool: Arc<ThreadPool>,
         map_size_lg: MapSizeLg,
         default_chunk: Arc<TerrainChunk>,
-        #[cfg(feature = "plugins")] mut plugin_mgr: PluginMgr,
     ) -> specs::World {
         prof_span!("State::setup_ecs_world");
         let mut ecs = specs::World::new();
@@ -417,25 +396,6 @@ impl State {
         ecs.insert(Trades::default());
         ecs.insert(PlayerPhysicsSettings::default());
         ecs.insert(VolumeRiders::default());
-
-        // Load plugins from asset directory
-        #[cfg(feature = "plugins")]
-        ecs.insert({
-            let ecs_world = EcsWorld {
-                entities: &ecs.entities(),
-                health: ecs.read_component().into(),
-                uid: ecs.read_component().into(),
-                id_maps: &ecs.read_resource::<IdMaps>().into(),
-                player: ecs.read_component().into(),
-            };
-            if let Err(e) = plugin_mgr.load_event(&ecs_world, game_mode) {
-                tracing::debug!(?e, "Failed to run plugin init");
-                tracing::info!("Plugins disabled, enable debug logging for more information.");
-                PluginMgr::default()
-            } else {
-                plugin_mgr
-            }
-        });
 
         ecs
     }

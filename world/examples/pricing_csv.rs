@@ -2,16 +2,16 @@ use common::{
     terrain::BiomeKind,
     trade::{Good, SitePrices},
 };
-use rayon::ThreadPoolBuilder;
-use rusqlite::{Connection, ToSql};
-use std::error::Error;
-use strum::IntoEnumIterator;
-use vek::Vec2;
 use lemoncraft_world::{
     World,
     index::Index,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
+use rayon::ThreadPoolBuilder;
+use rusqlite::{Connection, ToSql};
+use std::error::Error;
+use strum::IntoEnumIterator;
+use vek::Vec2;
 
 fn good_pricing_csv(world: &World, index: &Index) -> Result<(), Box<dyn Error>> {
     let mut csv = csv::Writer::from_path("good_pricing.csv")?;

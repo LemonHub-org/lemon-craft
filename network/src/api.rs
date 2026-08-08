@@ -235,8 +235,8 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
-    /// use tokio::runtime::Runtime;
     /// use lemoncraft_network::{Network, Pid};
+    /// use tokio::runtime::Runtime;
     ///
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -271,9 +271,9 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
+    /// use lemoncraft_network::{Network, Pid};
     /// use prometheus::Registry;
     /// use tokio::runtime::Runtime;
-    /// use lemoncraft_network::{Network, Pid};
     ///
     /// let runtime = Runtime::new().unwrap();
     /// let registry = Registry::new();
@@ -445,8 +445,8 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
-    /// use tokio::runtime::Runtime;
     /// use lemoncraft_network::{ConnectAddr, ListenAddr, Network, Pid};
+    /// use tokio::runtime::Runtime;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
@@ -582,8 +582,8 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// use tokio::runtime::Runtime;
     /// use lemoncraft_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
+    /// use tokio::runtime::Runtime;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream

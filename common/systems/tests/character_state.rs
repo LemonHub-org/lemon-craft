@@ -14,11 +14,11 @@ mod tests {
     };
     use common_ecs::dispatch;
     use common_state::State;
+    use lemoncraft_common_systems::character_behavior;
     use rand::rng;
     use specs::{Builder, Entity, WorldExt};
     use std::{num::NonZeroU64, sync::Arc, time::Duration};
     use vek::{Vec2, Vec3, approx::AbsDiffEq};
-    use lemoncraft_common_systems::character_behavior;
 
     const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
         if let Ok(map_size_lg) = MapSizeLg::new(Vec2 { x: 1, y: 1 }) {
@@ -37,8 +37,6 @@ mod tests {
             |dispatch_builder| {
                 dispatch::<character_behavior::Sys>(dispatch_builder, &[]);
             },
-            #[cfg(feature = "plugins")]
-            common_state::plugin::PluginMgr::default(),
         );
         let msm = MaterialStatManifest::load().cloned();
         state.ecs_mut().insert(msm);

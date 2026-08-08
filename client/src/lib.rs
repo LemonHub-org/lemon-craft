@@ -32,7 +32,7 @@ use common::{
         skills::Skill,
         slot::{EquipSlot, InvSlotId, Slot},
     },
-    event::{EventBus, LocalEvent, PluginHash, UpdateCharacterMetadata},
+    event::{EventBus, LocalEvent, UpdateCharacterMetadata},
     grid::Grid,
     link::Is,
     lod,
@@ -69,8 +69,6 @@ use common_net::{
 
 pub use common_net::msg::ClientType;
 use common_state::State;
-#[cfg(feature = "plugins")]
-use common_state::plugin::PluginMgr;
 use common_systems::add_local_systems;
 use comp::BuffKind;
 use hashbrown::{HashMap, HashSet};
@@ -128,7 +126,6 @@ pub enum Event {
     MapMarker(comp::MapMarkerUpdate),
     StartSpectate(Vec3<f32>),
     SpectatePosition(Vec3<f32>),
-    PluginDataReceived(Vec<u8>),
     Dialogue(Uid, rtsim::Dialogue<true>),
     Gizmos(Vec<Gizmos>),
 }
@@ -357,10 +354,6 @@ pub struct Client {
     dt_adjustment: f64,
 
     connected_server_constants: ServerConstants,
-    /// Requested but not yet received plugins
-    missing_plugins: HashSet<PluginHash>,
-    /// Locally cached plugins needed by the server
-    local_plugins: Vec<PathBuf>,
 }
 
 /// Holds data related to the current players characters, as well as some
@@ -467,7 +460,7 @@ impl Client {
         auth_trusted: impl FnMut(&str) -> bool,
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
-        #[cfg_attr(not(feature = "plugins"), expect(unused_variables))] config_dir: PathBuf,
+        _config_dir: PathBuf,
         client_type: ClientType,
     ) -> Result<Self, Error> {
         let _ = rustls::crypto::ring::default_provider().install_default(); // needs to be initialized before usage
@@ -681,7 +674,6 @@ impl Client {
             ability_map,
             server_constants,
             description,
-            active_plugins: _active_plugins,
             role,
         } = loop {
             tokio::select! {
@@ -716,31 +708,8 @@ impl Client {
                     add_local_systems(dispatch_builder);
                     add_foreign_systems(dispatch_builder);
                 },
-                #[cfg(feature = "plugins")]
-                common_state::plugin::PluginMgr::from_asset_or_default(),
             );
 
-            #[cfg_attr(not(feature = "plugins"), expect(unused_mut))]
-            let mut missing_plugins: Vec<PluginHash> = Vec::new();
-            #[cfg_attr(not(feature = "plugins"), expect(unused_mut))]
-            let mut local_plugins: Vec<PathBuf> = Vec::new();
-            #[cfg(feature = "plugins")]
-            {
-                let already_present = state.ecs().read_resource::<PluginMgr>().plugin_list();
-                for hash in _active_plugins.iter() {
-                    if !already_present.contains(hash) {
-                        // look in config_dir first (cache)
-                        if let Ok(local_path) = common_state::plugin::find_cached(&config_dir, hash)
-                        {
-                            local_plugins.push(local_path);
-                        } else {
-                            //tracing::info!("cache not found {local_path:?}");
-                            tracing::info!("Server requires plugin {hash:x?}");
-                            missing_plugins.push(*hash);
-                        }
-                    }
-                }
-            }
             // Client-only components
             state.ecs_mut().register::<comp::Last<CharacterState>>();
             let entity = state.ecs_mut().apply_entity_package(entity_package);
@@ -1013,8 +982,6 @@ impl Client {
                 component_recipe_book,
                 max_group_size,
                 client_timeout,
-                missing_plugins,
-                local_plugins,
                 role,
             ))
         });
@@ -1031,8 +998,6 @@ impl Client {
             component_recipe_book,
             max_group_size,
             client_timeout,
-            missing_plugins,
-            local_plugins,
             role,
         ) = loop {
             tokio::select! {
@@ -1040,10 +1005,6 @@ impl Client {
                 _ = ping_interval.tick() => ping_stream.send(PingMsg::Ping)?,
             }
         };
-        let missing_plugins_set = missing_plugins.iter().cloned().collect();
-        if !missing_plugins.is_empty() {
-            stream.send(ClientGeneral::RequestPlugins(missing_plugins))?;
-        }
         ping_stream.send(PingMsg::Ping)?;
 
         debug!("Initial sync done");
@@ -1127,8 +1088,6 @@ impl Client {
             dt_adjustment: 1.0,
 
             connected_server_constants: server_constants,
-            missing_plugins: missing_plugins_set,
-            local_plugins,
         })
     }
 
@@ -1264,8 +1223,7 @@ impl Client {
                     // Always possible
                     ClientGeneral::ChatMsg(_)
                     | ClientGeneral::Command(_, _)
-                    | ClientGeneral::Terminate
-                    | ClientGeneral::RequestPlugins(_) => &mut self.general_stream,
+                    | ClientGeneral::Terminate => &mut self.general_stream,
                 };
                 #[cfg(feature = "tracy")]
                 {
@@ -2870,11 +2828,6 @@ impl Client {
 
                 frontend_events.push(Event::Notification(UserNotification::WaypointUpdated));
             },
-            ServerGeneral::PluginData(d) => {
-                let plugin_len = d.len();
-                tracing::info!(?plugin_len, "plugin data");
-                frontend_events.push(Event::PluginDataReceived(d));
-            },
             ServerGeneral::SetPlayerRole(role) => {
                 debug!(?role, "Updating client role");
                 self.role = role;
@@ -3536,20 +3489,6 @@ impl Client {
 
         Ok(())
     }
-
-    /// another plugin data received, is this the last one
-    pub fn plugin_received(&mut self, hash: PluginHash) -> usize {
-        if !self.missing_plugins.remove(&hash) {
-            tracing::warn!(?hash, "received unrequested plugin");
-        }
-        self.missing_plugins.len()
-    }
-
-    /// true if missing_plugins is not empty
-    pub fn are_plugins_missing(&self) -> bool { !self.missing_plugins.is_empty() }
-
-    /// extract list of locally cached plugins to load
-    pub fn take_local_plugins(&mut self) -> Vec<PathBuf> { std::mem::take(&mut self.local_plugins) }
 }
 
 impl Drop for Client {

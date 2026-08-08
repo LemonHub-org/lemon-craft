@@ -520,13 +520,10 @@ mod tests {
         let npc_names = NPC_NAMES.read();
         // ignore things that don't have names anyway
         //
-        // also plugins, sommry, plugins don't have i18n yet
-        for body in Body::iter().filter(|b| {
-            !matches!(
-                b,
-                Body::Item(_) | Body::Object(_) | Body::Ship(_) | Body::Plugin(_)
-            )
-        }) {
+        // sommry, plugins don't have i18n yet
+        for body in
+            Body::iter().filter(|b| !matches!(b, Body::Item(_) | Body::Object(_) | Body::Ship(_)))
+        {
             let Some(name) = npc_names.get_default_name(&body) else {
                 no_names.insert(body);
                 continue;

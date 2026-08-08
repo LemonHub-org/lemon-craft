@@ -32,10 +32,10 @@ use lemoncraft_voxygen::{
 
 use chrono::Utc;
 use common::clock::Clock;
-use std::{panic, path::PathBuf};
-use tracing::{info, warn};
 #[cfg(feature = "egui-ui")]
 use lemoncraft_voxygen::ui::egui::EguiState;
+use std::{panic, path::PathBuf};
+use tracing::{info, warn};
 use wgpu::{Backends, Instance};
 
 fn main() {

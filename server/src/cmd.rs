@@ -1224,7 +1224,6 @@ fn handle_set_body_type(
                     body.body_type =
                         parse_body_type(&new_body_type, comp::crustacean::ALL_BODY_TYPES)?;
                 },
-                comp::Body::Plugin(_) => {},
             };
 
             if old_body != body {

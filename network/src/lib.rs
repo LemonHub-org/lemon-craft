@@ -38,9 +38,9 @@
 //!
 //! # Examples
 //! ```rust
+//! use lemoncraft_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
 //! use std::sync::Arc;
 //! use tokio::{join, runtime::Runtime, time::sleep};
-//! use lemoncraft_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
 //!
 //! // Client
 //! async fn client(runtime: &Runtime) -> Result<(), Box<dyn std::error::Error>> {

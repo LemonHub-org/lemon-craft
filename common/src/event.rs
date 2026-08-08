@@ -30,8 +30,6 @@ use uuid::Uuid;
 use vek::*;
 
 pub type SiteId = u64;
-/// Plugin identifier (sha256)
-pub type PluginHash = [u8; 32];
 
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`
@@ -277,12 +275,6 @@ pub struct DeleteCharacterEvent {
 pub struct TeleportToPositionEvent {
     pub entity: EcsEntity,
     pub position: Vec3<f32>,
-}
-
-#[cfg(feature = "plugins")]
-pub struct RequestPluginsEvent {
-    pub entity: EcsEntity,
-    pub plugins: Vec<PluginHash>,
 }
 
 pub struct SetBattleModeEvent {

@@ -18,6 +18,11 @@ use common_net::msg::compression::{
 };
 use hashbrown::HashMap;
 use image::{ImageBuffer, ImageEncoder};
+use lemoncraft_world::{
+    World,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
+    site::SiteKind,
+};
 use num_traits::cast::FromPrimitive;
 use rayon::ThreadPoolBuilder;
 use serde::{Deserialize, Serialize};
@@ -30,11 +35,6 @@ use std::{
 };
 use tracing::{debug, trace};
 use vek::*;
-use lemoncraft_world::{
-    World,
-    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
-    site::SiteKind,
-};
 
 fn lz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Vec<u8> {
     let mut compressed = Vec::new();

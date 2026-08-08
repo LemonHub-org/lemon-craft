@@ -3,9 +3,9 @@ use common::{
     vol::SampleVol,
 };
 use criterion::{Criterion, criterion_group, criterion_main};
+use lemoncraft_voxygen::{mesh::terrain::generate_mesh, scene::terrain::BlocksOfInterest};
 use std::{hint::black_box, sync::Arc};
 use vek::*;
-use lemoncraft_voxygen::{mesh::terrain::generate_mesh, scene::terrain::BlocksOfInterest};
 use world::{World, sim};
 
 const CENTER: Vec2<i32> = Vec2 { x: 512, y: 512 };

@@ -1,7 +1,6 @@
 //! This crate contains the [`State`] and shared between
-//! server (`veloren-server`) and the client (`veloren-client`)
+//! server (`lemoncraft-server`) and the client (`lemoncraft-client`)
 
-#[cfg(feature = "plugins")] pub mod plugin;
 mod special_areas;
 mod state;
 // TODO: breakup state module and remove glob

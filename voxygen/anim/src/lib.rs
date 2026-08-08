@@ -87,7 +87,6 @@ pub mod fixture;
 pub mod golem;
 pub mod item;
 pub mod object;
-#[cfg(feature = "plugins")] pub mod plugin;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
@@ -122,10 +121,7 @@ pub type Bone = Transform<f32, f32, f32>;
 #[cfg(feature = "use-dyn-lib")]
 lazy_static! {
     static ref LIB: Arc<Mutex<Option<LoadedLib>>> =
-        common_dynlib::init("veloren-voxygen-anim", "anim", &[
-            #[cfg(feature = "plugins")]
-            "plugins",
-        ]);
+        common_dynlib::init("lemoncraft-voxygen-anim", "anim", &[]);
 }
 
 #[cfg(feature = "use-dyn-lib")]

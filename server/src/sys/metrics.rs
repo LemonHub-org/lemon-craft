@@ -5,12 +5,12 @@ use crate::{
 };
 use common::{resources::TimeOfDay, slowjob::SlowJobPool, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, SysMetrics, System};
+use lemoncraft_query_server::server::Metrics as RawQueryServerMetrics;
 use specs::{Entities, Join, Read, ReadExpect};
 use std::{
     sync::{Arc, Mutex},
     time::Instant,
 };
-use lemoncraft_query_server::server::Metrics as RawQueryServerMetrics;
 
 /// This system exports metrics
 #[derive(Default)]

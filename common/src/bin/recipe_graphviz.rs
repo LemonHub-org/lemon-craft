@@ -1,13 +1,13 @@
 use hashbrown::HashMap;
+use lemoncraft_common::{
+    comp::item::ItemDesc,
+    recipe::{RecipeBookManifest, RecipeInput},
+};
 use petgraph::{
     Graph,
     dot::{Config, Dot},
 };
 use std::{fs::File, io::Write};
-use lemoncraft_common::{
-    comp::item::ItemDesc,
-    recipe::{RecipeBookManifest, RecipeInput},
-};
 
 fn main() {
     let recipes = RecipeBookManifest::load().read();

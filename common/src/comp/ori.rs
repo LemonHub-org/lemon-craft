@@ -68,8 +68,8 @@ impl Ori {
     /// (the rotations are in local vector space).
     ///
     /// ```
-    /// use vek::{Quaternion, Vec3};
     /// use lemoncraft_common::{comp::Ori, util::Dir};
+    /// use vek::{Quaternion, Vec3};
     ///
     /// let ang = 90_f32.to_radians();
     /// let roll_right = Quaternion::rotation_y(ang);
@@ -89,8 +89,8 @@ impl Ori {
     /// (the rotations are in global vector space).
     ///
     /// ```
-    /// use vek::{Quaternion, Vec3};
     /// use lemoncraft_common::{comp::Ori, util::Dir};
+    /// use vek::{Quaternion, Vec3};
     ///
     /// let ang = 90_f32.to_radians();
     /// let roll_right = Quaternion::rotation_y(ang);
@@ -109,8 +109,8 @@ impl Ori {
     /// Take `global` into this Ori's local vector space
     ///
     /// ```
-    /// use vek::Vec3;
     /// use lemoncraft_common::{comp::Ori, util::Dir};
+    /// use vek::Vec3;
     ///
     /// let ang = 90_f32.to_radians();
     /// let (fw, left, up) = (Dir::default(), Dir::left(), Dir::up());
@@ -131,8 +131,8 @@ impl Ori {
     /// Take `local` into the global vector space
     ///
     /// ```
-    /// use vek::Vec3;
     /// use lemoncraft_common::{comp::Ori, util::Dir};
+    /// use vek::Vec3;
     ///
     /// let ang = 90_f32.to_radians();
     /// let (fw, left, up) = (Dir::default(), Dir::left(), Dir::up());

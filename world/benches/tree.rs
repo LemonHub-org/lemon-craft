@@ -1,6 +1,6 @@
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
-use std::hint::black_box;
 use lemoncraft_world::layer::tree::{ProceduralTree, TreeConfig};
+use std::hint::black_box;
 
 fn tree(c: &mut Criterion) {
     c.bench_function("generate", |b| {

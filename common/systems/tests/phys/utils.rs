@@ -14,11 +14,11 @@ use common::{
 use common_ecs::{System, dispatch};
 use common_net::sync::WorldSyncExt;
 use common_state::State;
+use lemoncraft_common_systems::{character_behavior, phys};
 use rand::prelude::*;
 use specs::{Builder, Entity, WorldExt};
 use std::{error::Error, sync::Arc, time::Duration};
 use vek::{Rgb, Vec2, Vec3};
-use lemoncraft_common_systems::{character_behavior, phys};
 
 pub const EPSILON: f32 = 0.00002;
 const DT_MILLIS: u64 = 10;
@@ -41,8 +41,6 @@ pub fn setup(add_systems: impl Fn(&mut specs::DispatcherBuilder)) -> State {
         DEFAULT_WORLD_CHUNKS_LG,
         Arc::new(TerrainChunk::water(0)),
         add_systems,
-        #[cfg(feature = "plugins")]
-        common_state::plugin::PluginMgr::default(),
     );
     state.ecs_mut().insert(MaterialStatManifest::with_empty());
     state.ecs_mut().insert(AbilityMap::load().cloned());

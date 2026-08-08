@@ -1,7 +1,6 @@
 use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
 
-use vek::*;
 use lemoncraft_common::{
     terrain::{
         SpriteKind, TerrainChunk, TerrainChunkMeta,
@@ -9,6 +8,7 @@ use lemoncraft_common::{
     },
     vol::*,
 };
+use vek::*;
 
 const MIN_Z: i32 = 140;
 const MAX_Z: i32 = 220;

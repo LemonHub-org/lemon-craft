@@ -92,11 +92,6 @@ lazy_static! {
         let mut categories = HashSet::new();
         let mut species = HashSet::new();
         for body in comp::Body::iter() {
-            // plugin doesn't seem to be spawnable, yet
-            if matches!(body, comp::Body::Plugin(_)) {
-                continue;
-            }
-
             if let Some(meta) = npc_names.get_species_meta(&body) {
                 categories.insert(npc_names[&body].keyword.clone());
                 species.insert(meta.keyword.clone());

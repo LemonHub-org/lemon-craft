@@ -547,7 +547,7 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
                     Body::Crustacean(_) | Body::FishSmall(_) | Body::FishMedium(_) => {
                         |chunk| chunk.is_underwater()
                     },
-                    Body::Object(_) | Body::Ship(_) | Body::Item(_) | Body::Plugin(_) => |_| true,
+                    Body::Object(_) | Body::Ship(_) | Body::Item(_) => |_| true,
                 };
 
                 for _ in 0..RESPAWN_ATTEMPTS {

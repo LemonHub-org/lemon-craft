@@ -143,8 +143,8 @@ impl Dir2 {
     ///
     /// Example:
     /// ```
-    /// use vek::Vec3;
     /// use lemoncraft_common::util::Dir2;
+    /// use vek::Vec3;
     /// let dir = Dir2::X;
     ///
     /// assert_eq!(dir.to_mat3() * Vec3::new(1, 0, 0), dir.to_vec3());
