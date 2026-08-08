@@ -10,9 +10,9 @@ See the [NixOS wiki](https://wiki.nixos.org/wiki/Flakes) for information on how 
 
 It is recommended to first set up the [Cachix](https://cachix.org) cache to save time with builds:
 ```shell
-nix shell nixpkgs#cachix -c cachix use veloren-nix
+nix shell nixpkgs#cachix -c cachix use lemoncraft-nix
 # or if you don't have flakes:
-nix-shell -p cachix --run "cachix use veloren-nix"
+nix-shell -p cachix --run "cachix use lemoncraft-nix"
 ```
 
 As this repository uses `git-lfs`, please make sure `git-lfs` is in your path.
@@ -23,7 +23,7 @@ git lfs install --local && git lfs fetch && git lfs checkout
 This should be automatically done if you use the development shell.
 
 If you get an issue such as `WARN gfx_backend_vulkan: Unable to create Vulkan instance: VkError(ERROR_INCOMPATIBLE_DRIVER)`,
-it might be that your system nixpkgs version and veloren repo nixpkgs version might be too far apart. In that case, you can try
+it might be that your system nixpkgs version and LemonCraft repo nixpkgs version might be too far apart. In that case, you can try
 changing your system nixpkgs to the unstable channel, or change the `nixpkgs` input in the `flake.nix` to match your system
 nixpkgs.
 
@@ -34,32 +34,32 @@ nixpkgs.
 If you just want to run the game without installing it, you can do so with:
 ```shell
 # Voxygen (the default):
-nix run gitlab:veloren/veloren
+nix run gitlab:lemoncraft/lemoncraft
 # Server CLI:
-nix run gitlab:veloren/veloren#veloren-server-cli
+nix run gitlab:lemoncraft/lemoncraft#lemoncraft-server-cli
 # or if you have a local repo
 nix run
-nix run .#veloren-server-cli
+nix run .#lemoncraft-server-cli
 ```
 
 To install the game into your user profile:
 ```shell
 # Voxygen:
-nix profile install gitlab:veloren/veloren
+nix profile install gitlab:lemoncraft/lemoncraft
 # Server CLI:
-nix profile install gitlab:veloren/veloren#veloren-server-cli
+nix profile install gitlab:lemoncraft/lemoncraft#lemoncraft-server-cli
 # or if you have a local repo:
 nix profile install
-nix profile install .#veloren-server-cli
+nix profile install .#lemoncraft-server-cli
 ```
 
 To install (for example) Voxygen on your system, the NixOS configuration (if you use a flake based setup) could look something like this:
 ```nix
 { description = "NixOS configuration with flakes";
 
-  inputs.veloren.url = gitlab:veloren/veloren;
+  inputs.lemoncraft.url = gitlab:lemoncraft/lemoncraft;
 
-  outputs = { self, nixpkgs, veloren }: {
+  outputs = { self, nixpkgs, lemoncraft }: {
     nixosConfigurations.<your-hostname> = nixpkgs.lib.nixosSystem rec {
       system = <your-system-arch>;
       # ...
@@ -70,21 +70,21 @@ To install (for example) Voxygen on your system, the NixOS configuration (if you
           nixpkgs.overlays = [
             # ...
             (final: prev: {
-              inherit (veloren.packages."${system}") veloren-voxygen;
+              inherit (lemoncraft.packages."${system}") lemoncraft-voxygen;
             })
           ];
 
           # You can also add the flake to your registry
-          nix.registry.veloren.flake = veloren;
+          nix.registry.lemoncraft.flake = lemoncraft;
           # with this, you can run latest master
           # regardless of version installed like this:
-          # nix run veloren/master
+          # nix run lemoncraft/master
         })
 
         # some module
         ({ pkgs, ... }: {
           environment.systemPackages = [
-            pkgs.veloren-voxygen
+            pkgs.lemoncraft-voxygen
           ];
         })
         # ...
@@ -101,9 +101,9 @@ You can do this to run the game without installing it (you will need a local clo
 # build the game
 nix-build nix/default.nix
 # run it
-./result/bin/veloren-voxygen
+./result/bin/lemoncraft-voxygen
 # or for server cli
-./result-2/bin/veloren-server-cli
+./result-2/bin/lemoncraft-server-cli
 ```
 
 To install Voxygen and server CLI into user profile:
@@ -118,15 +118,15 @@ You'll need to use [nixGL](https://github.com/guibou/nixGL) to be able to run th
 ## For Intel and AMD:
 # Install it (sadly no flake yet)
 nix-env -f https://github.com/guibou/nixGL/archive/master.tar.gz -iA nixGLIntel
-nixGLIntel veloren-voxygen
+nixGLIntel lemoncraft-voxygen
 ## For Nvidia:
 # Install it
 nix-env -f https://github.com/guibou/nixGL/archive/master.tar.gz -iA nixGLNvidia
-nixGLNvidia veloren-voxygen
+nixGLNvidia lemoncraft-voxygen
 ## For Nvidia driver on hybrid hardware:
 # Install it
 nix-env -f https://github.com/guibou/nixGL/archive/master.tar.gz -iA nixGLNvidiaBumblebee
-nixGLNvidiaBumblebee veloren-voxygen
+nixGLNvidiaBumblebee lemoncraft-voxygen
 ```
 
 ## Usage for developers
@@ -145,14 +145,14 @@ You can use the `bundle` subcommand to bundle the game into a single distro-agno
 ```shell
 ## bundling latest commit to master
 # Voxygen:
-nix bundle gitlab:veloren/veloren
+nix bundle gitlab:lemoncraft/lemoncraft
 # Server CLI:
-nix bundle gitlab:veloren/veloren#veloren-server-cli
+nix bundle gitlab:lemoncraft/lemoncraft#lemoncraft-server-cli
 ## for local repo:
 # Voxygen:
-nix bundle .#veloren-voxygen
+nix bundle .#lemoncraft-voxygen
 # Server CLI:
-nix bundle .#veloren-server-cli
+nix bundle .#lemoncraft-server-cli
 ```
 
 ### Without flakes

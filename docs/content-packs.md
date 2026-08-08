@@ -94,7 +94,7 @@ Rules:
 
 ### 5.1 Source Composition (core `common/assets` change)
 
-Refactor `FileSystem`:
+> **Status: DONE (P0, commit 23d95cb2)** — `FileSystem` generalized to N sources.
 
 ```rust
 pub struct FileSystem {
@@ -111,8 +111,12 @@ pub struct FileSystem {
 - `configure_hot_reloading`: watch all source directories
 
 Complexity: generalize the two-layer logic to N layers (`Option<RawFs>` →
-`Vec<RawFs>`), ~30 lines, reusing the existing test scaffolding
-(`FileSystem::scope` extended to multi-directory mocks).
+`Vec<RawFs>`), reusing the existing test scaffolding (`FileSystem::scope`
+extended to `scope_with_packs`, multi-directory mocks).
+
+Current state: `FileSystem::new()` fills `packs` only from the legacy
+`VELOREN_ASSETS_OVERRIDE` env var (as a single highest-priority pack). The
+`config_dir` parameter and `packs.ron` assembly arrive in P1 (see 5.3).
 
 ### 5.2 Pack Resolution & Assembly (new module `common/assets/src/packs.rs`)
 
@@ -151,9 +155,9 @@ Assembly rules:
 ### 5.3 Startup Integration
 
 - Extend `FileSystem::new()` signature: `new(config_dir: Option<&Path>)`
-  (client and server entry points pass their own config dir)
+  (client and server entry points pass their own config dir) — **P1**
 - `VELOREN_ASSETS_OVERRIDE` compatibility: when set, appended to `packs` as the
-  highest-priority entry (no manifest validation)
+  highest-priority entry (no manifest validation) — **DONE (P0)**
 - Singleplayer server and client share the same asset layer (already the case;
   no new work)
 
@@ -180,7 +184,7 @@ Assembly rules:
 
 | Phase | Scope | Verification |
 |---|---|---|
-| **P0** | Generalize `FileSystem` to N sources (Vec + merge semantics) | Generalize existing tests + new multi-pack tests |
+| **P0** ✅ done (`23d95cb2`) | Generalize `FileSystem` to N sources (Vec + merge semantics) | 21 tests green (4 new multi-pack); clippy `-D warnings`; fmt clean |
 | **P1** | `packs.rs` (scan/manifest/assembly) + `packs.ron` parsing | Unit tests for assembly rules; manual: core+full dual-pack run |
 | **P2** | Official "full content" pack lands (`assets/packs/full/`) + core streamlining | Full build + dual-mode runtime comparison |
 | **P3** | Documentation (player pack installation guide) | — |
