@@ -10,20 +10,28 @@
 /// sRGB 0..=1 channel storage (not premultiplied). Palette **v2** (Lemon
 /// Fresh).
 pub mod brand {
-    /// Warm-white panel/menu background (`#FDF6E3`).
+    /// Warm lemon-white panel/menu background (`#FDF6E3`).
     pub const PANEL_BG: [f32; 4] = [0.992, 0.965, 0.890, 1.0];
     /// Alias of [`PANEL_BG`]; do not fork a second menu background value.
     pub const MENU_BG: [f32; 4] = PANEL_BG;
-    /// Panel inner fill (`#FFFDF2`).
+    /// Panel inner fill — lemon-tinted white (`#FFFDF2`).
     pub const PANEL_FILL: [f32; 4] = [1.0, 0.992, 0.949, 1.0];
-    /// Alternate panel background (`#F2EAD3`).
+    /// Alternate panel background — soft warm yellow (`#F2EAD3`).
     pub const PANEL_BG_ALT: [f32; 4] = [0.949, 0.918, 0.827, 1.0];
 
     /// Amber borders / dividers (`#D8A500`).
     pub const FRAME: [f32; 4] = [0.847, 0.647, 0.0, 1.0];
     /// PNG chrome multiply tint (`#ECD48B`) — light warm, not dark brown.
     pub const UI_MAIN: [f32; 4] = [0.925, 0.831, 0.545, 1.0];
-    pub const UI_SUBTLE: [f32; 4] = [0.898, 0.870, 0.780, 1.0];
+    /// Tint applied to legacy generic menu button artwork outside the main
+    /// menu, where the light button treatment is still intentionally used.
+    pub const BUTTON_IMAGE_TINT: [f32; 4] = UI_MAIN;
+    /// Lemon-gold tint for the main-menu button states (`#D9AD00`).
+    pub const MAIN_MENU_BUTTON_TINT: [f32; 4] = [0.851, 0.678, 0.0, 1.0];
+    /// Dark ink text used on the lemon main-menu button states.
+    pub const MAIN_MENU_BUTTON_TEXT: [f32; 4] = [0.169, 0.169, 0.122, 1.0];
+    pub const MAIN_MENU_BUTTON_TEXT_DISABLED: [f32; 4] = super::alpha(MAIN_MENU_BUTTON_TEXT, 0.45);
+    pub const UI_SUBTLE: [f32; 4] = [0.929, 0.871, 0.651, 1.0];
     pub const UI_HIGHLIGHT: [f32; 4] = [1.0, 0.898, 0.4, 1.0];
 
     /// Shared interaction surfaces for ordinary menu chrome.
@@ -31,8 +39,11 @@ pub mod brand {
     pub const SURFACE_PRESSED: [f32; 4] = UI_SUBTLE;
     pub const SURFACE_DISABLED: [f32; 4] = super::alpha(PANEL_BG_ALT, 0.55);
     pub const BORDER_SUBTLE: [f32; 4] = super::alpha(FRAME, 0.55);
-    pub const FOCUS_RING: [f32; 4] = ACCENT_LIME;
-    pub const INPUT_SELECTION: [f32; 4] = super::alpha(ACCENT_LIME, 0.22);
+    pub const FOCUS_RING: [f32; 4] = ACCENT_LEMON;
+    pub const INPUT_SELECTION: [f32; 4] = super::alpha(ACCENT_LEMON, 0.22);
+    pub const INPUT_BORDER: [f32; 4] = BORDER_SUBTLE;
+    pub const INPUT_BORDER_FOCUSED: [f32; 4] = FOCUS_RING;
+    pub const SCROLLBAR_THUMB: [f32; 4] = super::alpha(FRAME, 0.78);
 
     /// Dark ink body text (`#2B2B1F`) — light surfaces, dark ink.
     pub const TEXT_PRIMARY: [f32; 4] = [0.169, 0.169, 0.122, 1.0];
@@ -47,10 +58,10 @@ pub mod brand {
     /// Secondary accent / former `TEXT_VELORITE` replacement (`#7CB518`).
     pub const ACCENT_LIME: [f32; 4] = [0.486, 0.710, 0.094, 1.0];
 
-    /// List selection fill — pure signal green; never lemon yellow.
-    pub const SELECTION_ACTIVE: [f32; 4] = [97.0 / 255.0, 1.0, 18.0 / 255.0, 1.0];
-    /// Inactive selection olive that reads on light panels (`#A6A66E`).
-    pub const SELECTION_INACTIVE: [f32; 4] = [166.0 / 255.0, 166.0 / 255.0, 110.0 / 255.0, 1.0];
+    /// List selection fill — lemon yellow, matching the menu chrome.
+    pub const SELECTION_ACTIVE: [f32; 4] = [1.0, 0.839, 0.0, 1.0];
+    /// Inactive selection — soft lemon that reads on light panels (`#EBD680`).
+    pub const SELECTION_INACTIVE: [f32; 4] = [0.922, 0.839, 0.502, 1.0];
 
     /// Tooltip background (inverted dark) (`#2B2B1F`).
     pub const TOOLTIP_BACK: [f32; 4] = [0.169, 0.169, 0.122, 1.0];
@@ -187,11 +198,11 @@ mod tests {
     }
 
     #[test]
-    fn selection_active_is_signal_green() {
+    fn selection_active_is_lemon() {
         let c = brand::SELECTION_ACTIVE;
-        assert!(c[1] >= 0.90);
-        assert!(c[0] <= 0.50);
-        assert!(c[2] <= 0.20);
+        assert_eq!(c, brand::ACCENT_LEMON, "selection follows brand lemon");
+        assert!(c[1] >= 0.8, "G high for lemon yellow");
+        assert!(c[2] <= 0.15, "B low for lemon yellow");
     }
 
     #[test]
@@ -201,9 +212,11 @@ mod tests {
     }
 
     #[test]
-    fn panel_bg_is_light() {
+    fn panel_bg_is_warm_lemon_white() {
         let c = brand::PANEL_BG;
-        assert!(c[0] > 0.9 && c[1] > 0.9 && c[2] > 0.8);
+        assert!(c[0] > c[1] && c[1] > c[2]);
+        assert!(c[0] >= 0.95, "panel background should read as warm white");
+        assert!(c[2] >= 0.85, "warm tint (not pure white)");
     }
 
     #[test]
