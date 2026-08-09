@@ -1,0 +1,35 @@
+## 信使任务通用对话
+
+npc-response-quest-courier-start = 我已经在你的地图上标记了目的地。
+npc-response-quest-courier-start_2 = 如果你找不到东西，通常可以问我或其他人问路。
+npc-response-quest-courier-start_3 =
+    .a0 = 祝旅途顺利。
+    .a1 = 注意安全！
+npc-response-quest-courier-where = 我已经更新了你地图上的位置，以显示 { $name } 在哪里。
+npc-response-quest-courier-thanks = 谢谢你把它带给我。
+npc-response-quest-courier-generic-insufficient-items = 看起来你还没有集齐所有需要的物品。集齐后再回来吧。
+dialogue-question-quest-courier-claim = 我有东西要给你！
+dialogue-question-quest-courier-where = 我在哪里可以找到 { $name }？
+hud-map-spot-unspecified = 此任务不需要前往特定地点。
+spot-name-gnarling-totem = 树精图腾
+spot-name-unspecified = 地点
+npc-response-quest-courier-ask = 你能把需要的东西送到 { $site } 附近的 { $name } 那里吗？送达后将付给你 { $coins } 枚金币。
+npc-response-quest-spot-courier-ask = 你能把从 { $spot } 获取的那些物品带给 { $site } 附近的 { $name } 作为凭证吗？送达后将付给你 { $coins } 枚金币。
+dialogue-question-quest-courier-what = 我要给 { $name } 送什么来着？
+dialogue-question-quest-courier-what-target = 我要给你送什么来着？
+npc-response-quest-fetch-ask = 你能把需要的东西带给我吗？送达后将付给你 { $coins } 枚金币。
+npc-response-quest-spot-fetch-ask = 你能从 { $spot } 取来需要的东西作为凭证吗？送达后将付给你 { $coins } 枚金币。
+dialogue-question-quest-fetch-what = 我要给你带什么来着？
+npc-response-quest-messenger-ask = 你能去 { $site } 附近找到 { $name } 并把消息带给他吗？我会确保你因帮忙获得 { $coins } 枚金币的报酬。
+npc-response-quest-messenger-what-is-needed = 你只需要找到 { $name } 并和他谈谈——消息自然会传达到。
+npc-response-quest-messenger-what-is-needed-target = 你是说你有消息要带给我？什么消息？
+dialogue-question-quest-messenger-what = 我要给 { $name } 传什么话来着？
+dialogue-question-quest-messenger-what-target = 我要给你传什么话来着？
+npc-response-quest-courier-gnarling-carving = 附近有一个树精聚集并建造了图腾的地方。如果你能消灭其中一些树精，并带回一份树精雕刻作为凭证，你将获得奖励。
+npc-response-quest-courier-gnarling-carving-insufficient-items = 看起来你至少需要一件树精雕刻。拿到后再回来吧。
+npc-response-quest-courier-gnarling-carving-what-is-needed = 你需要弄到一件树精雕刻——可以从树精身上强行夺取，也可以爬上树精图腾的顶端取得。
+hud-map-spot-gnarling-carving-label = 从树精图腾地点取得一件树精雕刻，并将其交给 { $name }。
+npc-response-quest-courier-legoom-leaf = 最近这些乐果兽在这里是个小麻烦……我们需要有人来控制局势。如果你能消灭其中一些，并带回一片乐果叶作为凭证，你将获得奖励。
+npc-response-quest-courier-legoom-leaf-insufficient-items = 看起来你至少需要一片乐果叶。拿到后再回来吧。
+npc-response-quest-courier-legoom-leaf-what-is-needed = 你需要弄到一片乐果叶——可以从乐果兽身上强行夺取。乐果兽随处可见。
+npc-response-quest-messenger-send-word = 我需要给某人传个话，但我没有时间亲自去。如果你能找到他们并转达，我会奖励你。
