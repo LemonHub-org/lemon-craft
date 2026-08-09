@@ -184,15 +184,15 @@ pub struct StreamParams {
 /// use lemoncraft_network::{Network, ConnectAddr, ListenAddr, Pid};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
+/// // Create a Network, listen on port `2999` to accept connections and connect to port `17080` to connect to a (pseudo) database Application
 /// let runtime = Runtime::new().unwrap();
 /// let mut network = Network::new(Pid::new(), &runtime);
 /// runtime.block_on(async{
 ///     # //setup pseudo database!
 ///     # let database = Network::new(Pid::new(), &runtime);
-///     # database.listen(ListenAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
+///     # database.listen(ListenAddr::Tcp("127.0.0.1:17080".parse().unwrap())).await?;
 ///     network.listen(ListenAddr::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
-///     let database = network.connect(ConnectAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
+///     let database = network.connect(ConnectAddr::Tcp("127.0.0.1:17080".parse().unwrap())).await?;
 ///     drop(network);
 ///     # drop(database);
 ///     # Ok(())
