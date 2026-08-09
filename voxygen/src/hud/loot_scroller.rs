@@ -1,5 +1,6 @@
 use super::{
-    HudInfo, Show, TEXT_COLOR, TOOLTIP_FRAME_FILL, Windows, animate_by_pulse, get_quality_col,
+    HudInfo, SCROLLBAR_COLOR, Show, TEXT_COLOR, TOOLTIP_FRAME_FILL, Windows, animate_by_pulse,
+    get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     util,
@@ -305,7 +306,12 @@ impl Widget for LootScroller<'_> {
             {
                 Scrollbar::y_axis(state.ids.message_box)
                     .thickness(5.0)
-                    .rgba(0.33, 0.33, 0.33, 1.0 - show_all_age.powi(4))
+                    .rgba(
+                        SCROLLBAR_COLOR[0],
+                        SCROLLBAR_COLOR[1],
+                        SCROLLBAR_COLOR[2],
+                        SCROLLBAR_COLOR[3] * (1.0 - show_all_age.powi(4)),
+                    )
                     .left_from(state.ids.message_box, 1.0)
                     .set(state.ids.scrollbar, ui);
             }

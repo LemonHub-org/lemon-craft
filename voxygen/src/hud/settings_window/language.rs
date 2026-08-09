@@ -1,6 +1,6 @@
 use crate::{
     GlobalState,
-    hud::{TEXT_COLOR, img_ids::Imgs},
+    hud::{SCROLLBAR_COLOR, TEXT_COLOR, img_ids::Imgs},
     session::settings_change::{Language as LanguageChange, Language::*},
     ui::{ToggleButton, fonts::Fonts},
 };
@@ -85,7 +85,12 @@ impl Widget for Language<'_> {
             .set(state.ids.window_r, ui);
         Scrollbar::y_axis(state.ids.window)
             .thickness(5.0)
-            .rgba(0.33, 0.33, 0.33, 1.0)
+            .rgba(
+                SCROLLBAR_COLOR[0],
+                SCROLLBAR_COLOR[1],
+                SCROLLBAR_COLOR[2],
+                SCROLLBAR_COLOR[3],
+            )
             .set(state.ids.window_scrollbar, ui);
 
         // Share with server button

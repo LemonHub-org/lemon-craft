@@ -16,6 +16,7 @@ pub struct Screen {
 }
 
 impl Screen {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self {
             back_button: Default::default(),
@@ -35,7 +36,8 @@ impl Screen {
         button_style: style::button::Style,
     ) -> Element<'_, Message> {
         let title = Text::new(i18n.get_msg("main-servers-select_server"))
-            .size(fonts.cyri.scale(35))
+            .font(fonts.alkhemi.id)
+            .size(fonts.alkhemi.scale(35))
             .width(Length::Fill)
             .horizontal_alignment(iced::HorizontalAlignment::Center);
 
@@ -92,18 +94,19 @@ impl Screen {
                         Row::with_children(vec![
                             Space::new(Length::FillPortion(5), Length::Units(0)).into(),
                             Text::new(server.as_ref())
-                                .size(fonts.cyri.scale(30))
+                                .font(fonts.universal.id)
+                                .size(fonts.universal.scale(30))
                                 .width(Length::FillPortion(95))
                                 .vertical_alignment(iced::VerticalAlignment::Center)
                                 .into(),
                         ]),
                     )
-                    .style(
-                        style::button::Style::new(imgs.selection)
-                            .hover_image(imgs.selection_hover)
-                            .press_image(imgs.selection_press)
-                            .image_color(vek::Rgba::new(color.0, color.1, color.2, 255)),
-                    )
+                    .style(style::button::Style::selection(
+                        imgs.selection,
+                        imgs.selection_hover,
+                        imgs.selection_press,
+                        vek::Rgba::new(color.0, color.1, color.2, 255),
+                    ))
                     .min_height(100)
                     .on_press(Message::ServerChanged(i));
                     Row::with_children(vec![
@@ -131,7 +134,6 @@ impl Screen {
                 .spacing(10)
                 .padding(20),
             )
-            .style(style::container::Style::panel_with_frame())
             .max_width(500),
         )
         .width(Length::Fill)

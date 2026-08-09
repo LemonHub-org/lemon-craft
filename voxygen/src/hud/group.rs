@@ -1,7 +1,7 @@
 use super::{
     BLACK, BUFF_COLOR, DEBUFF_COLOR, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR, LOW_HP_COLOR,
-    QUALITY_EPIC, STAMINA_COLOR, Show, TEXT_COLOR, TEXT_COLOR_GREY, TOOLTIP_FRAME_FILL,
-    UI_HIGHLIGHT_0, UI_MAIN, cr_color,
+    QUALITY_EPIC, SCROLLBAR_COLOR, STAMINA_COLOR, Show, TEXT_COLOR, TEXT_COLOR_GREY,
+    TOOLTIP_FRAME_FILL, UI_HIGHLIGHT_0, UI_MAIN, cr_color,
     img_ids::{Imgs, ImgsRot},
 };
 
@@ -759,7 +759,12 @@ impl Widget for Group<'_> {
                     .set(state.ids.scroll_area, ui);
                 Scrollbar::y_axis(state.ids.scroll_area)
                     .thickness(5.0)
-                    .rgba(0.33, 0.33, 0.33, 1.0)
+                    .rgba(
+                        SCROLLBAR_COLOR[0],
+                        SCROLLBAR_COLOR[1],
+                        SCROLLBAR_COLOR[2],
+                        SCROLLBAR_COLOR[3],
+                    )
                     .set(state.ids.scrollbar, ui);
                 // List member names
                 for (i, &uid) in group_members.iter().copied().enumerate() {

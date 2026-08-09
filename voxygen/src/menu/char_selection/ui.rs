@@ -417,11 +417,10 @@ impl Controls {
         let fonts = &self.fonts;
         let tooltip_manager = &self.tooltip_manager;
 
-        let button_style = style::button::Style::new(imgs.button)
-            .hover_image(imgs.button_hover)
-            .press_image(imgs.button_press)
-            .text_color(TEXT_COLOR)
-            .disabled_text_color(DISABLED_TEXT_COLOR);
+        let button_style =
+            style::button::Style::lemon_fresh(imgs.button, imgs.button_hover, imgs.button_press)
+                .text_color(TEXT_COLOR)
+                .disabled_text_color(DISABLED_TEXT_COLOR);
 
         let tooltip_style = tooltip::Style {
             container: style::container::Style::color_with_image_border(

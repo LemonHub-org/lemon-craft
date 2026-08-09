@@ -1,5 +1,5 @@
 use super::super::super::widget::image;
-use crate::ui::theme::{alpha, brand, to_rgba_u8};
+use crate::ui::theme::{brand, to_rgba_u8};
 use vek::Rgba;
 
 /// Container Border
@@ -46,9 +46,6 @@ impl Style {
             to_rgba_u8(brand::FRAME),
         )
     }
-
-    /// Light translucent surface used over menu artwork.
-    pub fn panel_overlay() -> Self { Self::color(to_rgba_u8(alpha(brand::PANEL_BG, 0.9))) }
 
     /// Shorthand for a color background with a cornerless border
     pub fn color_with_double_cornerless_border(

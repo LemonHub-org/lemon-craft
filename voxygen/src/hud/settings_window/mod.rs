@@ -10,7 +10,7 @@ mod video;
 
 use crate::{
     GlobalState,
-    hud::{Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, img_ids::Imgs},
+    hud::{SETTINGS_SIDEBAR, SETTINGS_SURFACE, Show, TEXT_COLOR, UI_HIGHLIGHT_0, img_ids::Imgs},
     session::settings_change::SettingsChange,
     ui::fonts::Fonts,
 };
@@ -27,6 +27,7 @@ widget_ids! {
     struct Ids {
         frame,
         settings_bg,
+        settings_sidebar,
         tabs_align,
         icon,
         settings_close,
@@ -167,11 +168,13 @@ impl Widget for SettingsWindow<'_> {
         let tab_font_scale = 18;
 
         // Frame
-        Image::new(self.imgs.settings_bg)
-            .w_h(1052.0, 886.0)
+        Rectangle::fill_with([1052.0, 886.0], SETTINGS_SURFACE)
             .mid_top_with_margin_on(ui.window, 5.0)
-            .color(Some(UI_MAIN))
             .set(state.ids.settings_bg, ui);
+
+        Rectangle::fill_with([232.0, 814.0], SETTINGS_SIDEBAR)
+            .top_left_with_margins_on(state.ids.settings_bg, 44.0, 2.0)
+            .set(state.ids.settings_sidebar, ui);
 
         Image::new(self.imgs.settings_frame)
             .w_h(1052.0, 886.0)

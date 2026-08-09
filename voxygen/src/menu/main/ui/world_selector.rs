@@ -16,7 +16,7 @@ use crate::{
             component::neat_button,
             style,
             widget::{
-                BackgroundContainer, Image, Overlay, Padding,
+                BackgroundContainer, Overlay, Padding,
                 compound_graphic::{CompoundGraphic, Graphic},
             },
         },
@@ -73,7 +73,7 @@ impl Screen {
         i18n: &Localization,
         button_style: style::button::Style,
     ) -> Element<'_, Message> {
-        let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
+        let input_text_size = fonts.universal.scale(INPUT_TEXT_SIZE);
 
         let worlds_count = worlds.worlds.len();
         if self.worlds_buttons.len() != worlds_count {
@@ -81,7 +81,8 @@ impl Screen {
         }
 
         let title = Text::new(i18n.get_msg("gameinput-map"))
-            .size(fonts.cyri.scale(35))
+            .font(fonts.alkhemi.id)
+            .size(fonts.alkhemi.scale(35))
             .horizontal_alignment(iced::HorizontalAlignment::Center);
 
         let mut list = Scrollable::new(&mut self.selection_list)
@@ -111,17 +112,18 @@ impl Screen {
                         Space::new(Length::FillPortion(5), Length::Units(0)).into(),
                         Text::new(map)
                             .width(Length::FillPortion(95))
-                            .size(fonts.cyri.scale(25))
+                            .font(fonts.universal.id)
+                            .size(fonts.universal.scale(25))
                             .vertical_alignment(iced::VerticalAlignment::Center)
                             .into(),
                     ]),
                 )
-                .style(
-                    style::button::Style::new(imgs.selection)
-                        .hover_image(imgs.selection_hover)
-                        .press_image(imgs.selection_press)
-                        .image_color(Rgba::new(color.0, color.1, color.2, 192)),
-                )
+                .style(style::button::Style::selection(
+                    imgs.selection,
+                    imgs.selection_hover,
+                    imgs.selection_press,
+                    Rgba::new(color.0, color.1, color.2, 192),
+                ))
                 .min_height(56)
                 .on_press(Message::WorldChanged(super::WorldsChange::SetActive(i)));
                 Row::with_children(vec![
@@ -210,26 +212,43 @@ impl Screen {
             pub const DAY_LENGTH_MAX: f64 = 60.0;
 
             let mut gen_content = vec![
-                BackgroundContainer::new(
-                    Image::new(imgs.input_bg)
-                        .width(Length::Units(230))
-                        .fix_aspect_ratio(),
-                    Element::from(
-                        TextInput::new(
-                            &mut self.world_name,
-                            &i18n.get_msg("main-singleplayer-world_name"),
-                            &world.name,
-                            move |s| message(WorldChange::Name(s)),
-                        )
-                        .size(input_text_size),
-                    ),
-                )
-                .padding(Padding::new().horizontal(7).top(5))
+                Container::new(Element::from(
+                    TextInput::new(
+                        &mut self.world_name,
+                        &i18n.get_msg("main-singleplayer-world_name"),
+                        &world.name,
+                        move |s| message(WorldChange::Name(s)),
+                    )
+                    .size(input_text_size),
+                ))
+                .width(Length::Units(230))
+                .padding([5, 7])
                 .into(),
             ];
 
             let seed = world.seed;
             let seed_str = i18n.get_msg("main-singleplayer-seed");
+            let seed_input: Element<Message> = if can_edit {
+                TextInput::new(&mut self.map_seed, &seed_str, &seed.to_string(), move |s| {
+                    if let Ok(seed) = if s.is_empty() {
+                        Ok(0)
+                    } else {
+                        s.parse::<u32>()
+                    } {
+                        message(WorldChange::Seed(seed))
+                    } else {
+                        message(WorldChange::Seed(seed))
+                    }
+                })
+                .size(input_text_size)
+                .into()
+            } else {
+                Text::new(world.seed.to_string())
+                    .size(input_text_size)
+                    .width(Length::Fill)
+                    .height(Length::Shrink)
+                    .into()
+            };
             let mut seed_content = vec![
                 Column::with_children(vec![
                     Text::new(seed_str.to_string())
@@ -239,40 +258,10 @@ impl Screen {
                 ])
                 .padding(iced::Padding::new(5))
                 .into(),
-                BackgroundContainer::new(
-                    Image::new(imgs.input_bg)
-                        .width(Length::Units(190))
-                        .fix_aspect_ratio(),
-                    if can_edit {
-                        Element::from(
-                            TextInput::new(
-                                &mut self.map_seed,
-                                &seed_str,
-                                &seed.to_string(),
-                                move |s| {
-                                    if let Ok(seed) = if s.is_empty() {
-                                        Ok(0)
-                                    } else {
-                                        s.parse::<u32>()
-                                    } {
-                                        message(WorldChange::Seed(seed))
-                                    } else {
-                                        message(WorldChange::Seed(seed))
-                                    }
-                                },
-                            )
-                            .size(input_text_size),
-                        )
-                    } else {
-                        Text::new(world.seed.to_string())
-                            .size(input_text_size)
-                            .width(Length::Fill)
-                            .height(Length::Shrink)
-                            .into()
-                    },
-                )
-                .padding(Padding::new().horizontal(7).top(5))
-                .into(),
+                Container::new(seed_input)
+                    .width(Length::Units(190))
+                    .padding([5, 7])
+                    .into(),
             ];
 
             if can_edit {
@@ -460,18 +449,19 @@ impl Screen {
                                                 .into(),
                                             Text::new(i18n.get_msg(Self::map_kind_key(shape)))
                                                 .width(Length::FillPortion(95))
-                                                .size(fonts.cyri.scale(14))
+                                                .font(fonts.universal.id)
+                                                .size(fonts.universal.scale(14))
                                                 .vertical_alignment(iced::VerticalAlignment::Center)
                                                 .into(),
                                         ])
                                         .align_items(Align::Center),
                                     )
-                                    .style(
-                                        style::button::Style::new(imgs.selection)
-                                            .hover_image(imgs.selection_hover)
-                                            .press_image(imgs.selection_press)
-                                            .image_color(Rgba::new(color.0, color.1, color.2, 192)),
-                                    )
+                                    .style(style::button::Style::selection(
+                                        imgs.selection,
+                                        imgs.selection_hover,
+                                        imgs.selection_press,
+                                        Rgba::new(color.0, color.1, color.2, 192),
+                                    ))
                                     .width(Length::FillPortion(1))
                                     .min_height(18)
                                     .on_press(Message::WorldChanged(
@@ -641,7 +631,8 @@ impl Screen {
             if let Some(name) = worlds.worlds.get(*index).map(|world| &world.name) {
                 let over_content = Column::with_children(vec![
                     Text::new(i18n.get_msg_ctx(text, &i18n::fluent_args! { "world_name" => name }))
-                        .size(fonts.cyri.scale(24))
+                        .font(fonts.universal.id)
+                        .size(fonts.universal.scale(24))
                         .into(),
                     Row::with_children(vec![
                         neat_button(
@@ -667,7 +658,6 @@ impl Screen {
                 .spacing(10);
 
                 let over = Container::new(over_content)
-                    .style(style::container::Style::panel_with_frame())
                     .width(Length::Shrink)
                     .height(Length::Shrink)
                     .max_width(400)

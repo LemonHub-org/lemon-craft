@@ -7,6 +7,7 @@ use iced::{
 };
 
 const CURSOR_WIDTH: f32 = 2.0;
+const INPUT_BORDER_WIDTH: f32 = 1.0;
 // Extra scroll offset past the cursor
 const EXTRA_OFFSET: f32 = 10.0;
 
@@ -155,6 +156,61 @@ impl text_input::Renderer for IcedRenderer {
         };
         let linear_color = color.into_linear().into();
 
+        let border_color = if state.is_focused() {
+            brand::INPUT_BORDER_FOCUSED
+        } else {
+            brand::INPUT_BORDER
+        };
+        // Keep the focus affordance, but leave the scene visible through the
+        // field. The old implementation filled every input with a solid theme
+        // color,
+        // which recreated the stacked-card look even after its outer
+        // Container background was removed.
+        let border_color = to_iced(border_color).into_linear().into();
+        let border_width = INPUT_BORDER_WIDTH
+            .min(bounds.width / 2.0)
+            .min(bounds.height / 2.0);
+        let input_background = Primitive::Group {
+            primitives: vec![
+                Primitive::Rectangle {
+                    bounds: Rectangle {
+                        x: bounds.x,
+                        y: bounds.y,
+                        width: bounds.width,
+                        height: border_width,
+                    },
+                    linear_color: border_color,
+                },
+                Primitive::Rectangle {
+                    bounds: Rectangle {
+                        x: bounds.x,
+                        y: bounds.y + bounds.height - border_width,
+                        width: bounds.width,
+                        height: border_width,
+                    },
+                    linear_color: border_color,
+                },
+                Primitive::Rectangle {
+                    bounds: Rectangle {
+                        x: bounds.x,
+                        y: bounds.y + border_width,
+                        width: border_width,
+                        height: (bounds.height - border_width * 2.0).max(0.0),
+                    },
+                    linear_color: border_color,
+                },
+                Primitive::Rectangle {
+                    bounds: Rectangle {
+                        x: bounds.x + bounds.width - border_width,
+                        y: bounds.y + border_width,
+                        width: border_width,
+                        height: (bounds.height - border_width * 2.0).max(0.0),
+                    },
+                    linear_color: border_color,
+                },
+            ],
+        };
+
         let (cursor_primitive, scroll_offset) = if state.is_focused() {
             let cursor = state.cursor();
 
@@ -234,7 +290,7 @@ impl text_input::Renderer for IcedRenderer {
             linear_color,
         };
 
-        let primitive = match cursor_primitive {
+        let text_primitive = match cursor_primitive {
             Some(cursor_primitive) => Primitive::Group {
                 primitives: vec![cursor_primitive, text_primitive],
             },
@@ -244,14 +300,18 @@ impl text_input::Renderer for IcedRenderer {
         // Probably already computed this somewhere
         let text_width = self.measure_value(display_text, size, font);
 
-        let primitive = if text_width > text_bounds.width {
+        let text_primitive = if text_width > text_bounds.width {
             Primitive::Clip {
                 bounds: text_bounds,
                 offset: (scroll_offset as u32, 0).into(),
-                content: Box::new(primitive),
+                content: Box::new(text_primitive),
             }
         } else {
-            primitive
+            text_primitive
+        };
+
+        let primitive = Primitive::Group {
+            primitives: vec![input_background, text_primitive],
         };
 
         (

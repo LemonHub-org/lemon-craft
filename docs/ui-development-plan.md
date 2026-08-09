@@ -166,6 +166,150 @@ Status: complete (2026-08-09).
 - Verification: `cargo fmt --all` and `cargo check -p lemoncraft-voxygen --locked --no-default-features --features default-publish` passed; the initial check emitted one unused-import warning, which was removed afterward.
 - `cargo check -p lemoncraft-voxygen --tests --locked --no-default-features --features default-publish` also passed. Running the linked test binary was blocked by Windows `link.exe` LNK1104 while another user-side `cargo bench --offline` process was active; no process was terminated.
 
+## Phase 2 incremental 1 — generic menu button slice
+
+Status: complete (2026-08-09).
+
+- Added `style::button::Style::lemon_fresh(...)` as the shared adapter for ordinary menu button image states.
+- Applied the `BUTTON_IMAGE_TINT` token to the current button artwork while keeping the three image states swappable for the later asset redraw.
+- Migrated the main menu and character-selection generic buttons only; character cards, HUD controls, quality colors, and semantic selection frames remain isolated.
+- Verified all three generic button PNGs exist and passed `cargo fmt --all`, `git diff --check`, and the locked `voxygen` compile check.
+
+## Phase 2 incremental 2 — selection frames and text inputs
+
+Status: complete (2026-08-09).
+
+- Added `style::button::Style::selection(...)` so language, server, world, and map-option lists share one selection-frame resource contract.
+- Added theme tokens for input fill, normal border, focused border, and selection highlight.
+- Made the custom Iced text-input renderer draw a light input surface with a visible focus ring while preserving cursor, placeholder, and text-selection behavior.
+- Kept character-card selection and HUD controls outside this slice because they carry domain-specific visual meaning.
+- Verification: `cargo fmt --all`, `git diff --check`, and the locked `voxygen` compile check passed.
+
+## Phase 2 incremental 3 — generated selection and input textures
+
+Status: complete (2026-08-09).
+
+- Replaced `generic/frames/selection.png`, `selection_hover.png`, and `selection_press.png` with a new Lemon Fresh pixel-art frame set.
+- Replaced `generic/textbox.png` with the matching warm-white input texture used by login, world editing, and character naming.
+- The generated palette follows the visual spec: warm-white surfaces, amber normal/pressed states, Lime hover/focus, dark ink-safe interiors, no blue-gray or black chrome.
+- The focused input variant was used as a reference, while the runtime focus ring remains code-driven so the custom renderer keeps one source of truth.
+- Source was generated with the built-in image model, chroma-key cleaned, cropped to the existing contracts (`186x47` selection frames and `169x25` textbox), and validated as RGBA PNGs.
+
+## Phase 2 incremental 4 — scrollbars and settings surface
+
+Status: complete (2026-08-09).
+
+- Added the shared `SCROLLBAR_THUMB` token and migrated settings, group, crafting, and loot scrollbars to the Lemon Fresh amber thumb color. The loot scroller's existing dynamic fade remains intact.
+- Replaced the settings window's runtime dependency on the old dark `settings_bg` fill with the themed `PANEL_FILL` surface and `PANEL_BG_ALT` sidebar, while preserving the existing frame geometry and layout IDs.
+- Removed the unused `settings_bg` image registration; the legacy asset remains on disk for a later cleanup pass rather than being deleted in this incremental slice.
+- Verification: `cargo fmt --all`, `git diff --check`, and the locked `voxygen` compile check passed.
+
+## Phase 2 incremental 5 — shared close-button states
+
+Status: complete (2026-08-09).
+
+- Replaced the shared `close_btn`, `close_btn_hover`, and `close_btn_press` sprites used across settings, bag, map, quest, trade, diary, prompt, social, and crafting windows.
+- The new three-state set keeps the existing `24x25` RGBA contract and uses warm ivory, amber, and lime accents with dark ink glyphs.
+- The assets were generated as a single state board, chroma-key cleaned, cropped with nearest-neighbor scaling, and validated after the locked compile check.
+
+## Phase 2 incremental 6 — main-menu background
+
+Status: complete (2026-08-09).
+
+- Replaced `background/bg_main.jpg`, the full-screen background used by normal main-menu screens, while preserving the existing `1920x1080` JPEG contract.
+- Regenerated the voxel valley from the original composition: river leading line, central landmark tree, layered cliffs, and foliage remain recognizable.
+- Removed the old red-magenta cast and near-black foreground crush; the new grade uses muted sage, moss, umber, warm sand, and controlled amber light so the Lemon Fresh panels and logo remain legible.
+- The output was generated with the built-in image model using the original background as a reference, then resized and validated as `1920x1080` RGB JPEG.
+- Verification: `cargo fmt --all`, `git diff --check`, and the locked `voxygen` compile check passed. Live screenshot review remains the next visual QA step.
+
+## Phase 2 incremental 7 — main-menu hierarchy cleanup
+
+Status: complete (2026-08-09).
+
+- Removed the redundant main-menu logo and version column; the background now carries the scene identity without competing branding inside the action flow.
+- Replaced the old three-column composition with a focused left navigation rail and a centered login/language panel.
+- Increased the left action rail width for readable labels and replaced the old banner-gradient intro surface with a shared Lemon Fresh panel overlay.
+- Added a framed central panel so inputs, server state, and primary actions have a stable readable surface over the new background.
+- Removed unused main-menu image registrations for the deleted logo and banner-gradient dependency; source assets remain untouched for later global cleanup.
+- Verification: `cargo fmt --all`, `git diff --check`, and the locked `voxygen` compile check passed.
+
+## Phase 2 incremental 8 — main-menu button sprites
+
+Status: complete (2026-08-09).
+
+- Replaced the shared `button`, `button_hover`, and `button_press` sprites used by the main-menu action rail and primary login actions.
+- Preserved the existing sprite contracts (`106x26` normal and `212x52` hover/pressed) while removing the old dark-brown leather treatment.
+- The new states use the same warm ivory, lime, amber, and dark-ink language as the close buttons, selection frames, and input textures.
+- The assets were generated as a blank three-state board, chroma-key cleaned, cropped with nearest-neighbor scaling, and validated as RGBA PNGs.
+- Verification: `cargo fmt --all`, `git diff --check`, and the locked `voxygen` compile check passed.
+
+## Phase 2 incremental 9 — main-menu visual redesign
+
+Status: complete (2026-08-09).
+
+- Removed the obsolete top version strip and the remaining logo/banner competition from the main login flow.
+- Reworked the composition around one translucent primary content surface, with a restrained utility action panel anchored at the lower left.
+- Replaced the old framed center panel and language gradient banner with open spacing, a small lime accent rule, dark-ink typography, and a shared warm surface.
+- Preserved login, server selection, language selection, error confirmation, and singleplayer/multiplayer actions; this slice changes composition and hierarchy only.
+- Verification: `cargo fmt --all`, `git diff --check`, and `cargo check -p lemoncraft-voxygen --locked --no-default-features --features default-publish` passed.
+
+## Phase 2 incremental 10 — menu typography foundation
+
+Status: complete (2026-08-09).
+
+- Replaced the main-menu Iced default font from the legacy pixel face with the localization-safe universal font (`GoNotoCurrent`).
+- Assigned display hierarchy to `alkhemi` for menu headings and `universal` for inputs, server names, loading messages, credits, and body copy.
+- Updated Simplified Chinese font metadata from WenQuanYi Zen Hei to `NotoSansTC-Regular` for cleaner glyph proportions and stronger menu readability.
+- Kept language-specific font manifests intact for other locales; unsupported scripts continue to use their existing localized coverage.
+- Verification: `cargo fmt --all`, `git diff --check`, and `cargo check -p lemoncraft-voxygen --locked --no-default-features --features default-publish` passed. The windowed client restarted successfully with `fullscreen.enabled: false`.
+
+## Phase 2 incremental 11 — main-menu density pass
+
+Status: complete (2026-08-09).
+
+- Reduced the login surface from `500×560` to `560×480` so its proportions follow the actual content instead of creating a tall empty shell.
+- Expanded login inputs from `230px` to `300px`, giving the form a stronger horizontal rhythm and reducing side voids.
+- Reduced the primary action stack from `200px` to `130px`, tightened button spacing, and compacted the lower-left utility panel.
+- Kept the explanatory copy, login flow, server selection, language selection, and singleplayer entry intact.
+- Verification: `cargo fmt --all`, `git diff --check`, and `cargo check -p lemoncraft-voxygen --locked --no-default-features --features default-publish` passed. The windowed client restarted successfully.
+
+## Phase 2 incremental 12 — surface color and input cleanup
+
+Status: complete (2026-08-09).
+
+- Replaced near-white shared menu surfaces with a muted moss-sand palette so panels no longer read as isolated white cards over the game scene.
+- Added a theme-driven input surface and removed the white textbox sprite from login and singleplayer world-edit fields.
+- Kept the existing focus ring, cursor, selection, and localized text behavior while removing the legacy white field background from these flows.
+- Verification: `cargo fmt --all`, `git diff --check`, and `cargo check -p lemoncraft-voxygen --locked --no-default-features --features default-publish` passed. The windowed client restarted successfully.
+
+## Phase 2 incremental 13 — main-menu contrast correction
+
+Status: complete (2026-08-09).
+
+- Darkened the shared menu surfaces again to a muted moss palette with enough separation from the bright background art.
+- Added a dedicated main-menu button treatment that tints the legacy button state masks dark olive instead of exposing their ivory artwork.
+- Switched main-menu button labels to warm light text, including a readable disabled state; ordinary menus keep their existing light button treatment during the incremental migration.
+- Verification: `cargo fmt --all`, `git diff --check`, and `cargo check -p lemoncraft-voxygen --locked --no-default-features --features default-publish` passed.
+
+## Phase 2 incremental 14 — shared scene surface
+
+Status: complete (2026-08-09).
+
+- Removed the individual solid backgrounds from the login utility group, login form, and main-menu input wrappers.
+- Removed framed panel fills from the server list, credits, connection prompt, disclaimer, and singleplayer confirmation overlays.
+- Removed the internal text-input fill from the custom renderer while preserving its four-edge focus/active border.
+- Kept the root scene background, the lime hierarchy rule, and interaction-state artwork so the menu remains readable and operable without stacked cards.
+- Verification: `cargo fmt --all`, `git diff --check`, `cargo check -p lemoncraft-voxygen --locked --no-default-features --features default-publish`, and `cargo build --bin lemoncraft-voxygen --locked --no-default-features --features default-publish` passed. The windowed client restarted successfully.
+
+## Phase 2 incremental 15 — temporary singleplayer landing flow
+
+Status: complete (2026-08-09).
+
+- Temporarily removed the multiplayer action, server selector, server input, and multiplayer account notice from the landing screen.
+- Recentered the remaining singleplayer, language, credits, and quit actions into one vertical composition.
+- Kept the multiplayer implementation marked as dormant code so it can be restored without rebuilding the connection flow.
+- Verification: `cargo fmt --all`, `git diff --check`, `cargo check -p lemoncraft-voxygen --locked --no-default-features --features default-publish`, and `cargo build --bin lemoncraft-voxygen --locked --no-default-features --features default-publish` passed. The windowed client restarted successfully.
+
 视觉统一完成后，再评估是否将 Conrod HUD 逐步迁移到 Iced 或其他统一层。迁移前需要先解决：
 
 - 自定义渲染器兼容

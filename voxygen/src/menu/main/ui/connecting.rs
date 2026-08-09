@@ -118,7 +118,8 @@ impl Screen {
                     Container::new(
                         Text::new(tip)
                             .horizontal_alignment(iced::HorizontalAlignment::Center)
-                            .size(fonts.cyri.scale(25)),
+                            .font(fonts.universal.id)
+                            .size(fonts.universal.scale(25)),
                     )
                     .width(Length::Fill)
                     .height(Length::Fill)
@@ -241,12 +242,16 @@ impl Screen {
                             ),
                     };
 
-                    Container::new(Text::new(stage_message).size(fonts.cyri.scale(20)))
-                        .width(Length::Fill)
-                        .height(Length::Fill)
-                        .padding(10)
-                        .align_x(Align::Start)
-                        .into()
+                    Container::new(
+                        Text::new(stage_message)
+                            .font(fonts.universal.id)
+                            .size(fonts.universal.scale(20)),
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .padding(10)
+                    .align_x(Align::Start)
+                    .into()
                 };
 
                 let cancel = Container::new(neat_button(
@@ -257,7 +262,7 @@ impl Screen {
                     Some(Message::CancelConnect),
                 ))
                 .width(Length::Fill)
-                .height(Length::Units(fonts.cyri.scale(30)))
+                .height(Length::Units(fonts.universal.scale(30)))
                 .center_x()
                 .padding(3);
 
@@ -302,7 +307,9 @@ impl Screen {
                 ]
             },
             ConnectionState::AuthTrustPrompt { msg, .. } => {
-                let text = Text::new(msg).size(fonts.cyri.scale(25));
+                let text = Text::new(msg)
+                    .font(fonts.universal.id)
+                    .size(fonts.universal.scale(25));
 
                 let cancel = neat_button(
                     &mut self.cancel_button,
@@ -335,9 +342,7 @@ impl Screen {
                 .width(Length::Fill)
                 .height(Length::Fill);
 
-                let prompt_window = Container::new(content)
-                    .style(style::container::Style::panel_with_frame())
-                    .padding(20);
+                let prompt_window = Container::new(content).padding(20);
 
                 let container = Container::new(prompt_window)
                     .width(Length::Fill)
@@ -347,7 +352,7 @@ impl Screen {
 
                 vec![
                     container.into(),
-                    Space::new(Length::Fill, Length::Units(fonts.cyri.scale(15))).into(),
+                    Space::new(Length::Fill, Length::Units(fonts.universal.scale(15))).into(),
                 ]
             },
         };

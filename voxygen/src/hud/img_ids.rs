@@ -719,7 +719,6 @@ image_ids! {
         window_3: "voxygen.element.ui.generic.frames.window_3", // unused
         esc_frame: "voxygen.element.ui.generic.frames.esc_menu",
         // Settings
-        settings_bg: "voxygen.element.ui.settings.settings_bg",
         settings_frame: "voxygen.element.ui.settings.settings_frame",
 
         // Close-Button

@@ -2,7 +2,7 @@ use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
     GlobalState,
-    hud::{AutoPressBehavior, MENU_BG, PressBehavior, TEXT_COLOR, img_ids::Imgs},
+    hud::{AutoPressBehavior, MENU_BG, PressBehavior, SCROLLBAR_COLOR, TEXT_COLOR, img_ids::Imgs},
     session::settings_change::{Gameplay as GameplayChange, Gameplay::*},
     ui::{ImageSlider, ToggleButton, fonts::Fonts},
 };
@@ -132,7 +132,12 @@ impl Widget for Gameplay<'_> {
             .set(state.ids.window_r, ui);
         Scrollbar::y_axis(state.ids.window)
             .thickness(5.0)
-            .rgba(0.33, 0.33, 0.33, 1.0)
+            .rgba(
+                SCROLLBAR_COLOR[0],
+                SCROLLBAR_COLOR[1],
+                SCROLLBAR_COLOR[2],
+                SCROLLBAR_COLOR[3],
+            )
             .set(state.ids.window_scrollbar, ui);
 
         let display_pan = self.global_state.settings.gameplay.pan_sensitivity;

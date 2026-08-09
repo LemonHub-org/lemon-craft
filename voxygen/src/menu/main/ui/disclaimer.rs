@@ -39,8 +39,8 @@ impl Screen {
                     Scrollable::new(&mut self.scroll)
                         .push(
                             iced::Text::new(i18n.get_msg("main-notice"))
-                                .font(fonts.cyri.id)
-                                .size(fonts.cyri.scale(23)),
+                                .font(fonts.universal.id)
+                                .size(fonts.universal.scale(23)),
                         )
                         .height(Length::FillPortion(1))
                         .into(),
@@ -52,7 +52,7 @@ impl Screen {
                             button_style,
                             Some(Message::AcceptDisclaimer),
                         ))
-                        .height(Length::Units(fonts.cyri.scale(50))),
+                        .height(Length::Units(fonts.universal.scale(50))),
                     )
                     .center_x()
                     .height(Length::Shrink)
@@ -64,9 +64,7 @@ impl Screen {
                 .width(Length::Fill)
                 .height(Length::Fill),
             )
-            .style(
-                style::container::Style::panel_with_frame(),
-            ),
+            ,
         )
         .center_x()
         .center_y()

@@ -1,5 +1,5 @@
 use super::super::super::widget::image;
-use crate::ui::theme::{brand, to_iced};
+use crate::ui::theme::{brand, to_iced, to_rgba_u8};
 use iced::Color;
 use vek::Rgba;
 
@@ -31,6 +31,51 @@ pub struct Style {
 }
 
 impl Style {
+    /// Shared selection-frame treatment for lists and option groups.
+    pub fn selection(
+        image: image::Handle,
+        hover_image: image::Handle,
+        press_image: image::Handle,
+        tint: Rgba<u8>,
+    ) -> Self {
+        Self::new(image)
+            .hover_image(hover_image)
+            .press_image(press_image)
+            .image_color(tint)
+    }
+
+    /// Standard Lemon Fresh treatment for ordinary menu buttons.
+    ///
+    /// The image states remain swappable so the current asset set can be
+    /// replaced incrementally, while all generic menu buttons share one
+    /// theme tint in the meantime.
+    pub fn lemon_fresh(
+        image: image::Handle,
+        hover_image: image::Handle,
+        press_image: image::Handle,
+    ) -> Self {
+        Self::new(image)
+            .hover_image(hover_image)
+            .press_image(press_image)
+            .image_color(to_rgba_u8(brand::BUTTON_IMAGE_TINT))
+    }
+
+    /// High-contrast treatment for the main menu over the bright scene art.
+    ///
+    /// The legacy button PNGs are intentionally retained as state masks, but
+    /// their ivory artwork is multiplied by a dark olive theme tint here so
+    /// the menu does not read as a collection of white cards.
+    pub fn main_menu(
+        image: image::Handle,
+        hover_image: image::Handle,
+        press_image: image::Handle,
+    ) -> Self {
+        Self::new(image)
+            .hover_image(hover_image)
+            .press_image(press_image)
+            .image_color(to_rgba_u8(brand::MAIN_MENU_BUTTON_TINT))
+    }
+
     pub fn new(image: image::Handle) -> Self {
         Self {
             background: Some(Background::new(image)),

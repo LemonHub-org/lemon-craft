@@ -3,8 +3,8 @@ use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH, ScaleChange};
 use crate::{
     GlobalState,
     hud::{
-        BarNumbers, BuffPosition, CrosshairType, MENU_BG, ShortcutNumbers, TEXT_COLOR,
-        img_ids::Imgs,
+        BarNumbers, BuffPosition, CrosshairType, MENU_BG, SCROLLBAR_COLOR, ShortcutNumbers,
+        TEXT_COLOR, img_ids::Imgs,
     },
     session::settings_change::{Interface as InterfaceChange, Interface::*},
     ui::{ImageSlider, ScaleMode, ToggleButton, fonts::Fonts},
@@ -184,7 +184,12 @@ impl Widget for Interface<'_> {
             .set(state.ids.window_r, ui);
         Scrollbar::y_axis(state.ids.window)
             .thickness(5.0)
-            .rgba(0.33, 0.33, 0.33, 1.0)
+            .rgba(
+                SCROLLBAR_COLOR[0],
+                SCROLLBAR_COLOR[1],
+                SCROLLBAR_COLOR[2],
+                SCROLLBAR_COLOR[3],
+            )
             .set(state.ids.window_scrollbar, ui);
 
         let bar_values = self.global_state.settings.interface.bar_numbers;

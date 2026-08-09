@@ -96,8 +96,8 @@ impl Screen {
             Column::with_children(
                 core::iter::once(
                     iced::Text::new(i18n.get_msg(header_i18n_key))
-                        .font(fonts.cyri.id)
-                        .size(fonts.cyri.scale(30))
+                        .font(fonts.alkhemi.id)
+                        .size(fonts.alkhemi.scale(30))
                         .color(header_color)
                         .width(Length::Fill)
                         .horizontal_alignment(HorizontalAlignment::Center)
@@ -106,8 +106,8 @@ impl Screen {
                 .chain(credit_iter.map(|credit| {
                     let text = format_credit(credit).expect("Formatting failed!!!");
                     iced::Text::new(text)
-                        .font(fonts.cyri.id)
-                        .size(fonts.cyri.scale(23))
+                        .font(fonts.universal.id)
+                        .size(fonts.universal.scale(23))
                         .width(Length::Fill)
                         .horizontal_alignment(HorizontalAlignment::Center)
                         .into()
@@ -143,70 +143,67 @@ impl Screen {
             )
         };
 
-        Container::new(
-            Container::new(
-                Column::with_children(vec![
-                    iced::Text::new(i18n.get_msg("main-credits"))
-                        .font(fonts.cyri.id)
-                        .size(fonts.cyri.scale(35))
-                        .width(Length::Fill)
-                        .horizontal_alignment(HorizontalAlignment::Center)
-                        .into(),
-                    Space::new(Length::Fill, Length::Units(25)).into(),
-                    Scrollable::new(&mut self.scroll)
-                        .push(art_section(
-                            "main-credits-music",
-                            music_header_color,
-                            &credits.music,
-                        ))
-                        .push(sounds_section(
-                            "main-credits-sound",
-                            music_header_color,
-                            &credits.sounds,
-                        ))
-                        .push(art_section(
-                            "main-credits-fonts",
-                            fonts_header_color,
-                            &credits.fonts,
-                        ))
-                        .push(art_section(
-                            "main-credits-other_art",
-                            other_art_header_color,
-                            &credits.other_art,
-                        ))
-                        .push(credit_section(
-                            "main-credits-contributors",
-                            contributors_header_color,
-                            credits.contributors.iter(),
-                            format_contributor_credit,
-                            fonts,
-                            i18n,
-                        ))
-                        .height(Length::FillPortion(1))
-                        .width(Length::Fill)
-                        .into(),
-                    Container::new(
-                        Container::new(neat_button(
-                            &mut self.back_button,
-                            i18n.get_msg("common-back"),
-                            0.7,
-                            button_style,
-                            Some(Message::Back),
-                        ))
-                        .height(Length::Units(fonts.cyri.scale(50))),
-                    )
-                    .center_x()
-                    .height(Length::Shrink)
+        Container::new(Container::new(
+            Column::with_children(vec![
+                iced::Text::new(i18n.get_msg("main-credits"))
+                    .font(fonts.alkhemi.id)
+                    .size(fonts.alkhemi.scale(35))
+                    .width(Length::Fill)
+                    .horizontal_alignment(HorizontalAlignment::Center)
+                    .into(),
+                Space::new(Length::Fill, Length::Units(25)).into(),
+                Scrollable::new(&mut self.scroll)
+                    .push(art_section(
+                        "main-credits-music",
+                        music_header_color,
+                        &credits.music,
+                    ))
+                    .push(sounds_section(
+                        "main-credits-sound",
+                        music_header_color,
+                        &credits.sounds,
+                    ))
+                    .push(art_section(
+                        "main-credits-fonts",
+                        fonts_header_color,
+                        &credits.fonts,
+                    ))
+                    .push(art_section(
+                        "main-credits-other_art",
+                        other_art_header_color,
+                        &credits.other_art,
+                    ))
+                    .push(credit_section(
+                        "main-credits-contributors",
+                        contributors_header_color,
+                        credits.contributors.iter(),
+                        format_contributor_credit,
+                        fonts,
+                        i18n,
+                    ))
+                    .height(Length::FillPortion(1))
                     .width(Length::Fill)
                     .into(),
-                ])
-                .spacing(5)
-                .padding(20)
+                Container::new(
+                    Container::new(neat_button(
+                        &mut self.back_button,
+                        i18n.get_msg("common-back"),
+                        0.7,
+                        button_style,
+                        Some(Message::Back),
+                    ))
+                    .height(Length::Units(fonts.universal.scale(50))),
+                )
+                .center_x()
+                .height(Length::Shrink)
                 .width(Length::Fill)
-                .height(Length::Fill),
-            )
-            .style(style::container::Style::panel_with_frame()),
-        )
+                .into(),
+            ])
+            .spacing(5)
+            .padding(20)
+            .width(Length::Fill)
+            .height(Length::Fill),
+        ))
         .center_x()
         .center_y()
         .padding(70)

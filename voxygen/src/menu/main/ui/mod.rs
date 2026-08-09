@@ -20,7 +20,7 @@ use crate::{
     window,
 };
 use i18n::{LanguageMetadata, LocalizationHandle};
-use iced::{Column, Container, HorizontalAlignment, Length, Row, Space, text_input};
+use iced::{Container, Length, text_input};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
 use common::assets::{AssetExt, Image, Ron};
@@ -36,7 +36,6 @@ use super::DetailedInitializationStage;
 use crate::ui::theme::{brand, to_iced, to_rgba_u8};
 
 pub const TEXT_COLOR: iced::Color = to_iced(brand::TEXT_PRIMARY);
-pub const DISABLED_TEXT_COLOR: iced::Color = to_iced(brand::TEXT_DISABLED);
 
 /// List selection tint (u8 RGB) from theme tokens — do not reintroduce cool
 /// teal.
@@ -55,14 +54,11 @@ pub const FILL_FRAC_TWO: f32 = 0.53;
 image_ids_ice! {
     struct Imgs {
         <ImageGraphic>
-        lc_logo: "voxygen.element.lc_logo",
         bg: "voxygen.background.bg_main",
         banner_top: "voxygen.element.ui.generic.frames.banner_top",
-        banner_gradient_bottom: "voxygen.element.ui.generic.frames.banner_gradient_bottom",
         button: "voxygen.element.ui.generic.buttons.button",
         button_hover: "voxygen.element.ui.generic.buttons.button_hover",
         button_press: "voxygen.element.ui.generic.buttons.button_press",
-        input_bg: "voxygen.element.ui.generic.textbox",
         loading_art: "voxygen.element.ui.generic.frames.loading_screen.loading_bg",
         loading_art_l: "voxygen.element.ui.generic.frames.loading_screen.loading_bg_l",
         loading_art_r: "voxygen.element.ui.generic.frames.loading_screen.loading_bg_r",
@@ -75,9 +71,6 @@ image_ids_ice! {
         #[cfg(feature = "singleplayer")]
         slider_indicator: "voxygen.element.ui.generic.slider.indicator",
 
-        unlock: "voxygen.element.ui.generic.buttons.unlock",
-        unlock_hover: "voxygen.element.ui.generic.buttons.unlock_hover",
-        unlock_press: "voxygen.element.ui.generic.buttons.unlock_press",
     }
 }
 
@@ -155,6 +148,7 @@ pub enum WorldsChange {
 }
 
 pub enum Event {
+    #[allow(dead_code)]
     LoginAttempt {
         username: String,
         password: String,
@@ -201,6 +195,7 @@ enum Screen {
         // Error to display in a box
         error: Option<String>,
     },
+    #[allow(dead_code)]
     Servers {
         screen: servers::Screen,
     },
@@ -236,14 +231,10 @@ pub struct Controls {
     imgs: Imgs,
     bg_img: widget::image::Handle,
     i18n: LocalizationHandle,
-    // Voxygen version
-    version: String,
     credits: Credits,
 
-    // If a server address was provided via cli argument we hide the server list button and replace
-    // the server field with a plain label (with a button to exit this mode and freely edit the
-    // field).
-    server_field_locked: bool,
+    // Retained for restoring the multiplayer flow later; no server controls
+    // are exposed on the temporary singleplayer-only landing screen.
     selected_server_index: Option<usize>,
     login_info: LoginInfo,
 
@@ -259,7 +250,6 @@ pub struct Controls {
 enum Message {
     Quit,
     Back,
-    ShowServers,
     ShowCredits,
     #[cfg(feature = "singleplayer")]
     Singleplayer,
@@ -271,13 +261,10 @@ enum Message {
     WorldCancelConfirmation,
     #[cfg(feature = "singleplayer")]
     WorldConfirmation(world_selector::Confirmation),
-    Multiplayer,
-    UnlockServerField,
     LanguageChanged(usize),
     OpenLanguageMenu,
     Username(String),
     Password(String),
-    Server(String),
     ServerChanged(usize),
     FocusPassword,
     CancelConnect,
@@ -298,8 +285,6 @@ impl Controls {
         settings: &Settings,
         server: Option<String>,
     ) -> Self {
-        let version = crate::ui::brand::version_line(&*common::util::DISPLAY_VERSION);
-
         let credits = Ron::<Credits>::load_expect_cloned("credits").into_inner();
 
         // Note: Keeping in case we re-add the disclaimer
@@ -314,7 +299,6 @@ impl Controls {
             };
         //};
 
-        let server_field_locked = server.is_some();
         let login_info = LoginInfo {
             username: settings.networking.username.clone(),
             password: String::new(),
@@ -336,10 +320,8 @@ impl Controls {
             imgs,
             bg_img,
             i18n,
-            version,
             credits,
 
-            server_field_locked,
             selected_server_index,
             login_info,
 
@@ -361,24 +343,13 @@ impl Controls {
         self.time += dt as f64;
 
         // TODO: consider setting this as the default in the renderer
-        let button_style = style::button::Style::new(self.imgs.button)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .text_color(TEXT_COLOR)
-            .disabled_text_color(DISABLED_TEXT_COLOR);
-
-        let version = iced::Text::new(&self.version)
-            .size(self.fonts.cyri.scale(12))
-            .width(Length::Fill)
-            .horizontal_alignment(HorizontalAlignment::Center);
-
-        let top_text = Row::with_children(vec![
-            Space::new(Length::Fill, Length::Shrink).into(),
-            version.into(),
-            Space::new(Length::Fill, Length::Shrink).into(),
-        ])
-        .padding(3)
-        .width(Length::Fill);
+        let button_style = style::button::Style::main_menu(
+            self.imgs.button,
+            self.imgs.button_hover,
+            self.imgs.button_press,
+        )
+        .text_color(to_iced(brand::MAIN_MENU_BUTTON_TEXT))
+        .disabled_text_color(to_iced(brand::MAIN_MENU_BUTTON_TEXT_DISABLED));
 
         let bg_img = if matches!(&self.screen, Screen::Connecting { .. }) {
             self.bg_img
@@ -399,7 +370,6 @@ impl Controls {
             Screen::Login { screen, error } => screen.view(
                 &self.fonts,
                 &self.imgs,
-                self.server_field_locked,
                 &self.login_info,
                 error.as_deref(),
                 &self.i18n.read(),
@@ -441,14 +411,11 @@ impl Controls {
             ),
         };
 
-        Container::new(
-            Column::with_children(vec![top_text.into(), content])
-                .spacing(3)
-                .width(Length::Fill)
-                .height(Length::Fill),
-        )
-        .style(style::container::Style::image(bg_img))
-        .into()
+        Container::new(content)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(style::container::Style::image(bg_img))
+            .into()
     }
 
     fn update(
@@ -468,15 +435,6 @@ impl Controls {
                     screen: Box::default(),
                     error: None,
                 };
-            },
-            Message::ShowServers => {
-                if matches!(&self.screen, Screen::Login { .. }) {
-                    self.selected_server_index =
-                        servers.iter().position(|f| f == &self.login_info.server);
-                    self.screen = Screen::Servers {
-                        screen: servers::Screen::new(),
-                    };
-                }
             },
             Message::ShowCredits => {
                 self.screen = Screen::Credits {
@@ -532,29 +490,12 @@ impl Controls {
                     *confirmation = Some(new_confirmation);
                 }
             },
-            Message::Multiplayer => {
-                self.screen = Screen::Connecting {
-                    screen: connecting::Screen::new(ui),
-                    connection_state: ConnectionState::InProgress,
-                    init_stage: DetailedInitializationStage::StartingMultiplayer,
-                };
-
-                events.push(Event::LoginAttempt {
-                    username: self.login_info.username.trim().to_string(),
-                    password: self.login_info.password.clone(),
-                    server_address: self.login_info.server.trim().to_string(),
-                });
-            },
-            Message::UnlockServerField => self.server_field_locked = false,
             Message::Username(new_value) => self.login_info.username = new_value,
             Message::LanguageChanged(new_value) => {
                 events.push(Event::ChangeLanguage(language_metadatas.remove(new_value)));
             },
             Message::OpenLanguageMenu => self.show.toggle(Showing::Languages),
             Message::Password(new_value) => self.login_info.password = new_value,
-            Message::Server(new_value) => {
-                self.login_info.server = new_value;
-            },
             Message::ServerChanged(new_value) => {
                 self.selected_server_index = Some(new_value);
                 self.login_info.server.clone_from(&servers[new_value]);
@@ -661,15 +602,6 @@ impl Controls {
                 screen.banner.password.move_cursor_to_end();
             } else if screen.banner.password.is_focused() {
                 screen.banner.password = text_input::State::new();
-                // Skip focusing server field if it isn't editable!
-                if self.server_field_locked {
-                    screen.banner.username = text_input::State::focused();
-                } else {
-                    screen.banner.server = text_input::State::focused();
-                }
-                screen.banner.server.move_cursor_to_end();
-            } else if screen.banner.server.is_focused() {
-                screen.banner.server = text_input::State::new();
                 screen.banner.username = text_input::State::focused();
                 screen.banner.username.move_cursor_to_end();
             } else {
@@ -693,7 +625,9 @@ impl MainMenuUi {
         // Load language
         let i18n = &global_state.i18n.read();
         // TODO: don't add default font twice
-        let font = load_font(&i18n.fonts().get("cyri").unwrap().asset_key);
+        // Use the localization-safe universal font as Iced's default so
+        // buttons and text inputs do not fall back to the legacy pixel face.
+        let font = load_font(&i18n.fonts().get("universal").unwrap().asset_key);
 
         let mut ui = Ui::new(
             &mut global_state.window,
@@ -728,7 +662,7 @@ impl MainMenuUi {
     pub fn update_language(&mut self, i18n: LocalizationHandle, settings: &Settings) {
         self.controls.i18n = i18n;
         let i18n = &i18n.read();
-        let font = load_font(&i18n.fonts().get("cyri").unwrap().asset_key);
+        let font = load_font(&i18n.fonts().get("universal").unwrap().asset_key);
         self.ui.clear_fonts(font);
         self.controls.fonts =
             Fonts::load(i18n.fonts(), &mut self.ui).expect("Impossible to load fonts!");

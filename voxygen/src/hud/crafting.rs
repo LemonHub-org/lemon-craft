@@ -1,6 +1,6 @@
 use super::{
-    HudInfo, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, TOOLTIP_FRAME_FILL,
-    UI_HIGHLIGHT_0, UI_MAIN, get_quality_col,
+    HudInfo, SCROLLBAR_COLOR, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR,
+    TOOLTIP_FRAME_FILL, UI_HIGHLIGHT_0, UI_MAIN, get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::{ItemImgs, animate_by_pulse},
     slots::{CraftSlot, CraftSlotInfo, SlotManager},
@@ -2388,11 +2388,21 @@ impl Widget for Crafting<'_> {
         // Scrollbars
         Scrollbar::y_axis(state.ids.align_rec)
             .thickness(5.0)
-            .rgba(0.66, 0.66, 0.66, 1.0)
+            .rgba(
+                SCROLLBAR_COLOR[0],
+                SCROLLBAR_COLOR[1],
+                SCROLLBAR_COLOR[2],
+                SCROLLBAR_COLOR[3],
+            )
             .set(state.ids.scrollbar_rec, ui);
         Scrollbar::y_axis(state.ids.align_ing)
             .thickness(5.0)
-            .rgba(0.66, 0.66, 0.66, 1.0)
+            .rgba(
+                SCROLLBAR_COLOR[0],
+                SCROLLBAR_COLOR[1],
+                SCROLLBAR_COLOR[2],
+                SCROLLBAR_COLOR[3],
+            )
             .set(state.ids.scrollbar_ing, ui);
 
         if self
