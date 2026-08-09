@@ -1,4 +1,5 @@
 use super::super::super::widget::image;
+use crate::ui::theme::{brand, to_iced};
 use iced::Color;
 use vek::Rgba;
 
@@ -116,8 +117,8 @@ impl Default for Style {
     fn default() -> Self {
         Self {
             background: None,
-            enabled_text: Color::WHITE,
-            disabled_text: Color::from_rgb(0.5, 0.5, 0.5),
+            enabled_text: to_iced(brand::TEXT_PRIMARY),
+            disabled_text: to_iced(brand::TEXT_DISABLED),
         }
     }
 }

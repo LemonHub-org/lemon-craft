@@ -1,8 +1,8 @@
 # LemonCraft Visual Design — Lemon Fresh
 
-> Status: palette **v2, draft** — light-theme direction replacing v1
+> Status: palette **v2, active** — light-theme direction replacing v1
 > (Warm Craft Fantasy, rejected for clashing with the game's bright voxel
-> world). Target implementation: `voxygen/src/ui/theme.rs`.
+> world). Implementation: `voxygen/src/ui/theme.rs` (`brand::*` tokens).
 
 ## 1. Direction
 

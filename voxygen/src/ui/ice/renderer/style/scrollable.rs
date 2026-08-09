@@ -1,4 +1,5 @@
 use super::super::super::widget::image;
+use crate::ui::theme::{alpha, brand, to_rgba_u8};
 use vek::Rgba;
 
 #[derive(Clone, Copy)]
@@ -11,7 +12,7 @@ impl Default for Style {
     fn default() -> Self {
         Self {
             track: None,
-            scroller: Scroller::Color(Rgba::new(128, 128, 128, 255)),
+            scroller: Scroller::Color(to_rgba_u8(alpha(brand::FRAME, 0.72))),
         }
     }
 }

@@ -153,7 +153,7 @@ use vek::*;
 
 use crate::ui::theme::{alpha, brand, to_conrod};
 
-// Brand / chrome — from `ui::theme` palette v1 (Warm Craft Fantasy)
+// Brand / chrome — from `ui::theme` palette v2 (Lemon Fresh)
 const TEXT_COLOR: Color = to_conrod(brand::TEXT_PRIMARY);
 /// Brand citrus accent (replaces former cool-teal `TEXT_VELORITE`).
 const TEXT_BRAND_ACCENT: Color = to_conrod(brand::ACCENT_LIME);
@@ -223,7 +223,7 @@ const GROUP_MEMBER: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
 const DEFAULT_NPC: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const MARKED_NPC: Color = Color::Rgba(1.0, 0.8, 0.0, 1.0);
 
-// UI Color-Theme (Warm Craft Fantasy chrome)
+// UI Color-Theme (Lemon Fresh chrome)
 const UI_MAIN: Color = to_conrod(brand::UI_MAIN);
 const UI_SUBTLE: Color = to_conrod(brand::UI_SUBTLE);
 const UI_HIGHLIGHT_0: Color = to_conrod(brand::UI_HIGHLIGHT);

@@ -1,48 +1,64 @@
-//! Lemon Fresh theme tokens (palette v2 — light theme).
+//! Lemon Fresh theme tokens (palette **v2** — light theme).
 //!
 //! Single source for brand/chrome colors shared by Conrod HUD and Iced menus.
 //! Semantic combat/quality/chat colors stay in `hud` (frozen). See
 //! `docs/visual-design-lemon-fresh.md`.
 //!
-//! NOTE: token values below are still v1 (dark Warm Craft Fantasy); migrate
-//! to v2 light values per the design doc.
+//! v1 (Warm Craft Fantasy, dark brown surfaces) is **rejected** — do not
+//! restore.
 
-/// sRGB 0..=1 channel storage (not premultiplied). Palette **v1** frozen.
+/// sRGB 0..=1 channel storage (not premultiplied). Palette **v2** (Lemon
+/// Fresh).
 pub mod brand {
-    pub const PANEL_BG: [f32; 4] = [0.102, 0.090, 0.071, 1.0];
+    /// Warm-white panel/menu background (`#FDF6E3`).
+    pub const PANEL_BG: [f32; 4] = [0.992, 0.965, 0.890, 1.0];
     /// Alias of [`PANEL_BG`]; do not fork a second menu background value.
     pub const MENU_BG: [f32; 4] = PANEL_BG;
-    pub const PANEL_FILL: [f32; 4] = [0.180, 0.204, 0.157, 1.0];
-    pub const PANEL_BG_ALT: [f32; 4] = [0.141, 0.125, 0.094, 1.0];
+    /// Panel inner fill (`#FFFDF2`).
+    pub const PANEL_FILL: [f32; 4] = [1.0, 0.992, 0.949, 1.0];
+    /// Alternate panel background (`#F2EAD3`).
+    pub const PANEL_BG_ALT: [f32; 4] = [0.949, 0.918, 0.827, 1.0];
 
-    pub const FRAME: [f32; 4] = [0.541, 0.451, 0.282, 1.0];
-    /// PNG chrome multiply tint (`#9a8460`).
-    pub const UI_MAIN: [f32; 4] = [0.604, 0.518, 0.376, 1.0];
-    pub const UI_SUBTLE: [f32; 4] = [0.165, 0.149, 0.125, 1.0];
-    pub const UI_HIGHLIGHT: [f32; 4] = [0.769, 0.659, 0.416, 1.0];
+    /// Amber borders / dividers (`#D8A500`).
+    pub const FRAME: [f32; 4] = [0.847, 0.647, 0.0, 1.0];
+    /// PNG chrome multiply tint (`#ECD48B`) — light warm, not dark brown.
+    pub const UI_MAIN: [f32; 4] = [0.925, 0.831, 0.545, 1.0];
+    pub const UI_SUBTLE: [f32; 4] = [0.898, 0.870, 0.780, 1.0];
+    pub const UI_HIGHLIGHT: [f32; 4] = [1.0, 0.898, 0.4, 1.0];
 
-    /// Warm off-white body text (`#f2efe6`).
-    pub const TEXT_PRIMARY: [f32; 4] = [0.949, 0.937, 0.902, 1.0];
-    pub const TEXT_DISABLED: [f32; 4] = [0.949, 0.937, 0.902, 0.2];
-    pub const TEXT_MUTED: [f32; 4] = [0.949, 0.937, 0.902, 0.5];
-    /// Menu emphasis (not item quality gold).
-    pub const TEXT_EMPHASIS: [f32; 4] = [1.0, 0.85, 0.5, 1.0];
+    /// Shared interaction surfaces for ordinary menu chrome.
+    pub const SURFACE_HOVER: [f32; 4] = PANEL_BG_ALT;
+    pub const SURFACE_PRESSED: [f32; 4] = UI_SUBTLE;
+    pub const SURFACE_DISABLED: [f32; 4] = super::alpha(PANEL_BG_ALT, 0.55);
+    pub const BORDER_SUBTLE: [f32; 4] = super::alpha(FRAME, 0.55);
+    pub const FOCUS_RING: [f32; 4] = ACCENT_LIME;
+    pub const INPUT_SELECTION: [f32; 4] = super::alpha(ACCENT_LIME, 0.22);
 
-    /// Brand citrus accent (`#d8e04a`); outline/logo only — not legendary gold.
-    pub const ACCENT_LEMON: [f32; 4] = [0.847, 0.878, 0.290, 1.0];
-    /// Secondary brand accent / former `TEXT_VELORITE` replacement (`#c9d94a`).
-    pub const ACCENT_LIME: [f32; 4] = [0.788, 0.851, 0.290, 1.0];
+    /// Dark ink body text (`#2B2B1F`) — light surfaces, dark ink.
+    pub const TEXT_PRIMARY: [f32; 4] = [0.169, 0.169, 0.122, 1.0];
+    pub const TEXT_DISABLED: [f32; 4] = super::alpha(TEXT_PRIMARY, 0.4);
+    pub const TEXT_MUTED: [f32; 4] = super::alpha(TEXT_PRIMARY, 0.6);
+    /// Menu emphasis — deep lemon gold (`#A88500`), not item quality gold.
+    pub const TEXT_EMPHASIS: [f32; 4] = [0.659, 0.522, 0.0, 1.0];
 
-    /// List selection fill — pure signal green; never citrus lemon.
+    /// Brand lemon (`#FFD600`) — borders, highlights, logo only; never body
+    /// text.
+    pub const ACCENT_LEMON: [f32; 4] = [1.0, 0.839, 0.0, 1.0];
+    /// Secondary accent / former `TEXT_VELORITE` replacement (`#7CB518`).
+    pub const ACCENT_LIME: [f32; 4] = [0.486, 0.710, 0.094, 1.0];
+
+    /// List selection fill — pure signal green; never lemon yellow.
     pub const SELECTION_ACTIVE: [f32; 4] = [97.0 / 255.0, 1.0, 18.0 / 255.0, 1.0];
-    pub const SELECTION_INACTIVE: [f32; 4] = [97.0 / 255.0, 97.0 / 255.0, 25.0 / 255.0, 1.0];
+    /// Inactive selection olive that reads on light panels (`#A6A66E`).
+    pub const SELECTION_INACTIVE: [f32; 4] = [166.0 / 255.0, 166.0 / 255.0, 110.0 / 255.0, 1.0];
 
-    pub const TOOLTIP_BACK: [f32; 4] = [20.0 / 255.0, 18.0 / 255.0, 10.0 / 255.0, 1.0];
-    /// HUD tooltip / item-tooltip `ImageFrame` center fill.
-    pub const TOOLTIP_FRAME_FILL: [f32; 4] = [0.08, 0.07, 0.04, 1.0];
+    /// Tooltip background (inverted dark) (`#2B2B1F`).
+    pub const TOOLTIP_BACK: [f32; 4] = [0.169, 0.169, 0.122, 1.0];
+    /// HUD tooltip / item-tooltip `ImageFrame` center fill (`#212117`).
+    pub const TOOLTIP_FRAME_FILL: [f32; 4] = [0.13, 0.13, 0.09, 1.0];
 
-    /// Overlay scrim alpha (≈230/255).
-    pub const OVERLAY_SCRIM_A: f32 = 230.0 / 255.0;
+    /// Overlay scrim alpha (soft dark ≈140/255).
+    pub const OVERLAY_SCRIM_A: f32 = 140.0 / 255.0;
 }
 
 /// Reference legendary quality gold (must stay in `hud`; duplicated here for
@@ -71,8 +87,11 @@ pub const fn to_iced(c: [f32; 4]) -> iced::Color {
     }
 }
 
-/// Convert theme sRGBA to `Rgba<u8>` with **round** (matches historical menu
-/// `156/179/179`).
+/// Convert theme sRGBA to a floating-point `vek::Rgba` for Iced slider styles.
+#[inline]
+pub const fn to_vek(c: [f32; 4]) -> vek::Rgba<f32> { vek::Rgba::new(c[0], c[1], c[2], c[3]) }
+
+/// Convert theme sRGBA to `Rgba<u8>` with **round** (e.g. 0.61×255 → 156).
 #[inline]
 pub const fn to_rgba_u8(c: [f32; 4]) -> vek::Rgba<u8> {
     vek::Rgba::new(
@@ -101,21 +120,21 @@ mod tests {
 
     #[test]
     fn round_matches_historical_menu_ui_main() {
-        // Old char-select UI_MAIN was (0.61, 0.70, 0.70) → Rgba(156, 179, 179, 255)
+        // Historical char-select cold teal (0.61, 0.70, 0.70) → Rgba(156, 179, 179,
+        // 255)
         let c = to_rgba_u8([0.61, 0.70, 0.70, 1.0]);
         assert_eq!(c, vek::Rgba::new(156, 179, 179, 255));
     }
 
     #[test]
     fn channel_round_not_truncate() {
-        // 0.61 * 255 = 155.55 → round 156, truncate would be 155
         assert_eq!(channel_u8(0.61), 156);
         assert_eq!(channel_u8(0.70), 179);
     }
 
     #[test]
     fn alpha_uses_same_round_rule() {
-        assert_eq!(channel_u8(0.2), 51); // 51.0
+        assert_eq!(channel_u8(0.2), 51);
         let c = to_rgba_u8([1.0, 1.0, 1.0, 0.2]);
         assert_eq!(c.a, 51);
     }
@@ -141,18 +160,30 @@ mod tests {
     }
 
     #[test]
-    fn accent_lemon_is_citrus_not_gold() {
+    fn accent_lemon_is_pure_yellow_not_body_text() {
+        // #FFD600 — bright pure yellow: high R/G, near-zero B (frame/highlight only).
         let c = brand::ACCENT_LEMON;
-        assert!(c[1] >= c[0], "G >= R");
-        assert!(c[1] - c[0] >= 0.02, "G - R >= 0.02");
-        assert!(c[2] <= 0.35, "B <= 0.35");
+        assert!(c[0] >= 0.95, "R high");
+        assert!(c[1] >= 0.80, "G high");
+        assert!(c[2] <= 0.05, "B ≈ 0");
     }
 
     #[test]
-    fn legendary_ref_stays_gold_shaped() {
+    fn legendary_ref_stays_amber_gold_shaped() {
+        // Legendary stays amber/gold (R > G, moderate G) — distinct from pure lemon
+        // yellow.
         let c = QUALITY_LEGENDARY_REF;
         assert!(c[0] > c[1] && c[1] > c[2]);
         assert!(c[0] - c[1] >= 0.10);
+        assert!(c[1] < 0.80, "legendary G lower than pure lemon yellow");
+    }
+
+    #[test]
+    fn lemon_and_legendary_are_distinguishable() {
+        let lemon = brand::ACCENT_LEMON;
+        let leg = QUALITY_LEGENDARY_REF;
+        // Pure lemon is brighter/yellower (higher G) than legendary amber gold.
+        assert!(lemon[1] > leg[1] + 0.05);
     }
 
     #[test]
@@ -161,6 +192,18 @@ mod tests {
         assert!(c[1] >= 0.90);
         assert!(c[0] <= 0.50);
         assert!(c[2] <= 0.20);
+    }
+
+    #[test]
+    fn text_primary_is_dark_ink() {
+        let c = brand::TEXT_PRIMARY;
+        assert!(c[0] < 0.25 && c[1] < 0.25 && c[2] < 0.25);
+    }
+
+    #[test]
+    fn panel_bg_is_light() {
+        let c = brand::PANEL_BG;
+        assert!(c[0] > 0.9 && c[1] > 0.9 && c[2] > 0.8);
     }
 
     #[test]
@@ -184,5 +227,27 @@ mod tests {
         assert!((c.g - brand::ACCENT_LIME[1]).abs() < f32::EPSILON);
         assert!((c.b - brand::ACCENT_LIME[2]).abs() < f32::EPSILON);
         assert!((c.a - brand::ACCENT_LIME[3]).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn to_vek_preserves_channels() {
+        let c = to_vek(brand::FOCUS_RING);
+        assert_eq!(
+            c,
+            vek::Rgba::new(
+                brand::FOCUS_RING[0],
+                brand::FOCUS_RING[1],
+                brand::FOCUS_RING[2],
+                brand::FOCUS_RING[3],
+            )
+        );
+    }
+
+    #[test]
+    fn text_disabled_uses_primary_rgb() {
+        assert_eq!(brand::TEXT_DISABLED[0], brand::TEXT_PRIMARY[0]);
+        assert_eq!(brand::TEXT_DISABLED[1], brand::TEXT_PRIMARY[1]);
+        assert_eq!(brand::TEXT_DISABLED[2], brand::TEXT_PRIMARY[2]);
+        assert!((brand::TEXT_DISABLED[3] - 0.4).abs() < f32::EPSILON);
     }
 }

@@ -1,7 +1,8 @@
 use super::super::{super::FontId, IcedRenderer, Primitive};
+use crate::ui::theme::{brand, to_iced};
 use glyph_brush::GlyphCruncher;
 use iced::{
-    Color, Point, Rectangle, mouse,
+    Point, Rectangle, mouse,
     text_input::{self, cursor},
 };
 
@@ -145,11 +146,12 @@ impl text_input::Renderer for IcedRenderer {
 
         // TODO: background from style, image?
 
-        // TODO: color from style
+        // The custom renderer has no style sheet yet; keep its text states in
+        // sync with the shared Lemon Fresh theme until that API is introduced.
         let color = if text.is_some() {
-            Color::WHITE
+            to_iced(brand::TEXT_PRIMARY)
         } else {
-            Color::from_rgba(1.0, 1.0, 1.0, 0.3)
+            to_iced(brand::TEXT_MUTED)
         };
         let linear_color = color.into_linear().into();
 
@@ -198,8 +200,7 @@ impl text_input::Renderer for IcedRenderer {
                                 width,
                                 height: text_bounds.height,
                             },
-                            // TODO: selection color from stlye
-                            linear_color: Color::from_rgba(1.0, 0.0, 1.0, 0.2).into_linear().into(),
+                            linear_color: to_iced(brand::INPUT_SELECTION).into_linear().into(),
                         },
                         offset,
                     )

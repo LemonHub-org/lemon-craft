@@ -10,6 +10,7 @@ use crate::ui::{
             compound_graphic::{CompoundGraphic, Graphic},
         },
     },
+    theme::{alpha, brand, to_rgba_u8},
 };
 
 use i18n::{LanguageMetadata, Localization};
@@ -108,12 +109,12 @@ impl Screen {
 
         let info_window = BackgroundContainer::new(
             CompoundGraphic::from_graphics(vec![
-                Graphic::rect(Rgba::new(0, 0, 0, 240), [500, 300], [0, 0]),
+                Graphic::rect(to_rgba_u8(alpha(brand::PANEL_BG, 0.94)), [500, 300], [0, 0]),
                 // Note: a way to tell it to keep the height of this one piece constant and
                 // unstreched would be nice, I suppose we could just break this out into a
                 // column and use Length::Units
                 Graphic::image(imgs.banner_gradient_bottom, [500, 50], [0, 300])
-                    .color(Rgba::new(0, 0, 0, 240)),
+                    .color(to_rgba_u8(alpha(brand::PANEL_BG, 0.94))),
             ])
             .height(Length::Shrink),
             Text::new(intro_text).size(fonts.cyri.scale(18)),
@@ -146,13 +147,7 @@ impl Screen {
                 .height(Length::Fill)
                 .width(Length::Fill),
             )
-            .style(
-                style::container::Style::color_with_double_cornerless_border(
-                    (22, 18, 16, 255).into(),
-                    (11, 11, 11, 255).into(),
-                    (54, 46, 38, 255).into(),
-                ),
-            )
+            .style(style::container::Style::panel_with_frame())
             .width(Length::Units(400))
             .height(Length::Units(180))
             .padding(20)
@@ -304,9 +299,16 @@ impl LanguageSelectBanner {
         let selection_menu = BackgroundContainer::new(
             CompoundGraphic::from_graphics(vec![
                 Graphic::image(imgs.banner_top, [138, 17], [0, 0]),
-                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 165], [4, 17]),
+                Graphic::rect(to_rgba_u8(alpha(brand::PANEL_BG, 0.94)), [130, 165], [
+                    4, 17,
+                ]),
                 // TODO: use non image gradient
-                Graphic::gradient(Rgba::new(0, 0, 0, 230), Rgba::zero(), [130, 50], [4, 182]),
+                Graphic::gradient(
+                    to_rgba_u8(alpha(brand::PANEL_BG, 0.94)),
+                    to_rgba_u8(alpha(brand::PANEL_BG, 0.0)),
+                    [130, 50],
+                    [4, 182],
+                ),
             ])
             .fix_aspect_ratio()
             .height(Length::Fill),

@@ -1,4 +1,5 @@
 use super::super::super::widget::image;
+use crate::ui::theme::{alpha, brand, to_vek};
 use vek::Rgba;
 
 #[derive(Clone, Copy)]
@@ -13,8 +14,8 @@ pub struct Style {
 impl Default for Style {
     fn default() -> Self {
         Self {
-            cursor: Cursor::Color(Rgba::new(0.5, 0.5, 0.5, 1.0)),
-            bar: Bar::Color(Rgba::new(0.5, 0.5, 0.5, 1.0)),
+            cursor: Cursor::Color(to_vek(brand::FRAME)),
+            bar: Bar::Color(to_vek(alpha(brand::FRAME, 0.3))),
             labels: false,
             cursor_size: (8, 16),
             bar_height: 6,

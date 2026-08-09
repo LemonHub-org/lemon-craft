@@ -65,11 +65,7 @@ impl Screen {
                 .height(Length::Fill),
             )
             .style(
-                style::container::Style::color_with_double_cornerless_border(
-                    (22, 19, 17, 255).into(),
-                    (11, 11, 11, 255).into(),
-                    (54, 46, 38, 255).into(),
-                ),
+                style::container::Style::panel_with_frame(),
             ),
         )
         .center_x()

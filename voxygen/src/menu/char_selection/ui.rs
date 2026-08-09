@@ -69,7 +69,7 @@ const STARTER_SWORDS: &str = "common.items.weapons.sword_1h.starter";
 // TODO: what does this comment mean?
 // // Use in future MR to make this a starter weapon
 
-// Chrome tint for scrollers / frames (Warm Craft Fantasy)
+// Chrome tint for scrollers / frames (Lemon Fresh)
 const UI_MAIN: Rgba<u8> = to_rgba_u8(brand::UI_MAIN);
 
 image_ids_ice! {
@@ -464,7 +464,7 @@ impl Controls {
             Some(
                 Container::new(
                     Container::new(Row::with_children(vec![warning.into()]).width(Length::Fill))
-                        .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
+                        .style(style::container::Style::panel_alt())
                         .padding(12)
                         .width(Length::Fill)
                         .center_x(),
@@ -559,7 +559,7 @@ impl Controls {
                     .spacing(5)
                     .align_items(Align::Center),
                 )
-                .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
+                .style(style::container::Style::panel())
                 .padding(12)
                 .center_x()
                 .center_y()
@@ -937,13 +937,7 @@ impl Controls {
                     };
 
                     let over = Container::new(over_content)
-                        .style(
-                            style::container::Style::color_with_double_cornerless_border(
-                                (0, 0, 0, 200).into(),
-                                (3, 4, 4, 255).into(),
-                                (28, 28, 22, 255).into(),
-                            ),
-                        )
+                        .style(style::container::Style::panel_with_frame())
                         .width(Length::Shrink)
                         .height(Length::Shrink)
                         .max_width(400)
@@ -1700,7 +1694,7 @@ impl Controls {
                     .spacing(5)
                     .padding(16),
                 )
-                .style(style::container::Style::color(Rgba::new(0, 0, 0, 100)));
+                .style(style::container::Style::panel_alt());
 
                 let create = neat_button(
                     create_button,

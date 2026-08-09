@@ -20,6 +20,7 @@ use crate::{
                 compound_graphic::{CompoundGraphic, Graphic},
             },
         },
+        theme::{alpha, brand, to_rgba_u8},
     },
 };
 
@@ -172,9 +173,16 @@ impl Screen {
         let selection_menu = BackgroundContainer::new(
             CompoundGraphic::from_graphics(vec![
                 Graphic::image(imgs.banner_top, [138, 17], [0, 0]),
-                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 300], [4, 17]),
+                Graphic::rect(to_rgba_u8(alpha(brand::PANEL_BG, 0.94)), [130, 300], [
+                    4, 17,
+                ]),
                 // TODO: use non image gradient
-                Graphic::gradient(Rgba::new(0, 0, 0, 230), Rgba::zero(), [130, 50], [4, 182]),
+                Graphic::gradient(
+                    to_rgba_u8(alpha(brand::PANEL_BG, 0.94)),
+                    to_rgba_u8(alpha(brand::PANEL_BG, 0.0)),
+                    [130, 50],
+                    [4, 182],
+                ),
             ])
             .fix_aspect_ratio()
             .height(Length::Fill)
@@ -589,9 +597,16 @@ impl Screen {
             let opts_menu = BackgroundContainer::new(
                 CompoundGraphic::from_graphics(vec![
                     Graphic::image(imgs.banner_top, [138, 17], [0, 0]),
-                    Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 300], [4, 17]),
+                    Graphic::rect(to_rgba_u8(alpha(brand::PANEL_BG, 0.94)), [130, 300], [
+                        4, 17,
+                    ]),
                     // TODO: use non image gradient
-                    Graphic::gradient(Rgba::new(0, 0, 0, 230), Rgba::zero(), [130, 50], [4, 182]),
+                    Graphic::gradient(
+                        to_rgba_u8(alpha(brand::PANEL_BG, 0.94)),
+                        to_rgba_u8(alpha(brand::PANEL_BG, 0.0)),
+                        [130, 50],
+                        [4, 182],
+                    ),
                 ])
                 .fix_aspect_ratio()
                 .height(Length::Fill)
@@ -652,13 +667,7 @@ impl Screen {
                 .spacing(10);
 
                 let over = Container::new(over_content)
-                    .style(
-                        style::container::Style::color_with_double_cornerless_border(
-                            (0, 0, 0, 200).into(),
-                            (3, 4, 4, 255).into(),
-                            (28, 28, 22, 255).into(),
-                        ),
-                    )
+                    .style(style::container::Style::panel_with_frame())
                     .width(Length::Shrink)
                     .height(Length::Shrink)
                     .max_width(400)
