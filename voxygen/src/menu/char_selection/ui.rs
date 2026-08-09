@@ -46,9 +46,11 @@ use iced::{
 use std::sync::Arc;
 use vek::{Rgba, Vec2};
 
-pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
-pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
-pub const TOOLTIP_BACK_COLOR: Rgba<u8> = Rgba::new(20, 18, 10, 255);
+use crate::ui::theme::{brand, to_iced, to_rgba_u8};
+
+pub const TEXT_COLOR: iced::Color = to_iced(brand::TEXT_PRIMARY);
+pub const DISABLED_TEXT_COLOR: iced::Color = to_iced(brand::TEXT_DISABLED);
+pub const TOOLTIP_BACK_COLOR: Rgba<u8> = to_rgba_u8(brand::TOOLTIP_BACK);
 const FILL_FRAC_ONE: f32 = 0.77;
 const FILL_FRAC_TWO: f32 = 0.53;
 const TOOLTIP_HOVER_DUR: std::time::Duration = std::time::Duration::from_millis(150);
@@ -67,8 +69,8 @@ const STARTER_SWORDS: &str = "common.items.weapons.sword_1h.starter";
 // TODO: what does this comment mean?
 // // Use in future MR to make this a starter weapon
 
-// TODO: use for info popup frame/background
-const UI_MAIN: Rgba<u8> = Rgba::new(156, 179, 179, 255); // Greenish Blue
+// Chrome tint for scrollers / frames (Warm Craft Fantasy)
+const UI_MAIN: Rgba<u8> = to_rgba_u8(brand::UI_MAIN);
 
 image_ids_ice! {
     struct Imgs {
@@ -374,7 +376,7 @@ impl Controls {
         world_sz: Vec2<u32>,
         has_rules: bool,
     ) -> Self {
-        let version = format!("Veloren {}", *common::util::DISPLAY_VERSION);
+        let version = crate::ui::brand::version_line(&*common::util::DISPLAY_VERSION);
         let server_mismatched_version = (*common::util::GIT_HASH != server_info.git_hash
             || *common::util::GIT_TIMESTAMP != server_info.git_timestamp)
             .then(|| {
@@ -706,10 +708,13 @@ impl Controls {
                         .collect::<Vec<_>>();
 
                     // Add create new character button
-                    let color = if num >= MAX_CHARACTERS_PER_PLAYER {
-                        (97, 97, 25)
-                    } else {
-                        (97, 255, 18)
+                    let color = {
+                        let c = to_rgba_u8(if num >= MAX_CHARACTERS_PER_PLAYER {
+                            brand::SELECTION_INACTIVE
+                        } else {
+                            brand::SELECTION_ACTIVE
+                        });
+                        (c.r, c.g, c.b)
                     };
                     characters.push(
                         AspectRatioContainer::new({

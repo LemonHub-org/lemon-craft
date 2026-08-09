@@ -151,17 +151,23 @@ use std::{
 use tracing::{instrument, trace, warn};
 use vek::*;
 
-const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-const TEXT_VELORITE: Color = Color::Rgba(0.0, 0.66, 0.66, 1.0);
+use crate::ui::theme::{alpha, brand, to_conrod};
+
+// Brand / chrome — from `ui::theme` palette v1 (Warm Craft Fantasy)
+const TEXT_COLOR: Color = to_conrod(brand::TEXT_PRIMARY);
+/// Brand citrus accent (replaces former cool-teal `TEXT_VELORITE`).
+const TEXT_BRAND_ACCENT: Color = to_conrod(brand::ACCENT_LIME);
 const TEXT_BLUE_COLOR: Color = Color::Rgba(0.8, 0.9, 1.0, 1.0);
 const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
 const TEXT_DULL_RED_COLOR: Color = Color::Rgba(0.56, 0.2, 0.2, 1.0);
 const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
-const TEXT_COLOR_GREY: Color = Color::Rgba(1.0, 1.0, 1.0, 0.5);
+const TEXT_COLOR_GREY: Color = to_conrod(brand::TEXT_MUTED);
 //const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
-const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
+const TEXT_COLOR_3: Color = to_conrod(alpha(brand::TEXT_PRIMARY, 0.1));
 const TEXT_BIND_CONFLICT_COLOR: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
 const BLACK: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
+/// HUD tooltip / item-tooltip ImageFrame center fill.
+const TOOLTIP_FRAME_FILL: Color = to_conrod(brand::TOOLTIP_FRAME_FILL);
 //const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const LOW_HP_COLOR: Color = Color::Rgba(0.93, 0.59, 0.03, 1.0);
@@ -217,14 +223,12 @@ const GROUP_MEMBER: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
 const DEFAULT_NPC: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const MARKED_NPC: Color = Color::Rgba(1.0, 0.8, 0.0, 1.0);
 
-// UI Color-Theme
-const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
-const UI_SUBTLE: Color = Color::Rgba(0.2, 0.24, 0.24, 1.0); // Dark Greenish Blue
-//const UI_MAIN: Color = Color::Rgba(0.1, 0.1, 0.1, 0.97); // Dark
-const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
+// UI Color-Theme (Warm Craft Fantasy chrome)
+const UI_MAIN: Color = to_conrod(brand::UI_MAIN);
+const UI_SUBTLE: Color = to_conrod(brand::UI_SUBTLE);
+const UI_HIGHLIGHT_0: Color = to_conrod(brand::UI_HIGHLIGHT);
 // Pull-Down menu BG color
-const MENU_BG: Color = Color::Rgba(0.1, 0.12, 0.12, 1.0);
-//const UI_DARK_0: Color = Color::Rgba(0.25, 0.37, 0.37, 1.0);
+const MENU_BG: Color = to_conrod(brand::MENU_BG);
 
 /// Distance at which nametags are visible for group members
 const NAMETAG_GROUP_RANGE: f32 = 1000.0;
@@ -1523,7 +1527,7 @@ impl Hud {
         self.pulse += dt.as_secs_f32();
         // FPS
         let fps = global_state.clock.stats().average_tps;
-        let version = format!("Veloren {}", *common::util::DISPLAY_VERSION);
+        let version = crate::ui::brand::version_line(&*common::util::DISPLAY_VERSION);
         let i18n = &global_state.i18n.read();
 
         if self.show.ingame {

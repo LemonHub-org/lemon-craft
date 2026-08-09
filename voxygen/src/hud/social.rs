@@ -1,5 +1,5 @@
 use super::{
-    Show, TEXT_COLOR, TEXT_COLOR_3, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, TEXT_COLOR, TEXT_COLOR_3, TOOLTIP_FRAME_FILL, UI_HIGHLIGHT_0, UI_MAIN,
     img_ids::{Imgs, ImgsRot},
 };
 use crate::{
@@ -132,7 +132,7 @@ impl Widget for Social<'_> {
             ImageFrame::new(
                 [edge.cw180, edge.none, edge.cw270, edge.cw90],
                 [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                TOOLTIP_FRAME_FILL,
                 5.0,
             )
         })
@@ -543,7 +543,7 @@ impl Widget for Social<'_> {
             ImageFrame::new(
                 [edge.cw180, edge.none, edge.cw270, edge.cw90],
                 [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                TOOLTIP_FRAME_FILL,
                 5.0,
             )
         })

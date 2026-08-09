@@ -16,7 +16,7 @@ build = true
 app = true
 desktopFile = "./assets/voxygen/net.lemoncraft.lemoncraft.desktop"
 longDescription = """
-Veloren is a multiplayer voxel RPG written in Rust.
+LemonCraft is a multiplayer voxel RPG written in Rust.
 It is inspired by games such as Cube World, Legend of Zelda: Breath of the Wild, Dwarf Fortress and Minecraft.
 
 This package includes the official client, Voxygen.

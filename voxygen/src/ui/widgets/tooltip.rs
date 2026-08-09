@@ -17,7 +17,9 @@ enum HoverState {
 
 // Spacing between the tooltip and mouse
 const MOUSE_PAD_Y: f64 = 15.0;
-const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0); // Default text color
+use crate::ui::theme::{brand, to_conrod};
+
+const TEXT_COLOR: Color = to_conrod(brand::TEXT_PRIMARY); // Default text color
 
 pub struct TooltipManager {
     tooltip_id: widget::Id,

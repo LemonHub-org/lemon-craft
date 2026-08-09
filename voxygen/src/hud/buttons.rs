@@ -1,5 +1,5 @@
 use super::{
-    BLACK, TEXT_COLOR,
+    BLACK, TEXT_COLOR, TOOLTIP_FRAME_FILL,
     img_ids::{Imgs, ImgsRot},
 };
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
     window::KeyMouse,
 };
 use conrod_core::{
-    Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+    Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
     widget::{self, Button, Text, UpdateArgs},
     widget_ids,
 };
@@ -112,7 +112,7 @@ impl Widget for Buttons<'_> {
             ImageFrame::new(
                 [edge.cw180, edge.none, edge.cw270, edge.cw90],
                 [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                TOOLTIP_FRAME_FILL,
                 5.0,
             )
         })

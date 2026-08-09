@@ -1,5 +1,5 @@
 use super::{
-    BUFF_COLOR, DEBUFF_COLOR, TEXT_COLOR,
+    BUFF_COLOR, DEBUFF_COLOR, TEXT_COLOR, TOOLTIP_FRAME_FILL,
     img_ids::{Imgs, ImgsRot},
 };
 use crate::{
@@ -133,7 +133,7 @@ impl Widget for BuffsBar<'_> {
             ImageFrame::new(
                 [edge.cw180, edge.none, edge.cw270, edge.cw90],
                 [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                TOOLTIP_FRAME_FILL,
                 5.0,
             )
         })

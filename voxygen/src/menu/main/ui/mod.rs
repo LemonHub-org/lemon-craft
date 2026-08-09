@@ -33,8 +33,21 @@ use super::DetailedInitializationStage;
 // TODO: what is this? (showed up in rebase)
 //const COL1: Color = Color::Rgba(0.07, 0.1, 0.1, 0.9);
 
-pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
-pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
+use crate::ui::theme::{brand, to_iced, to_rgba_u8};
+
+pub const TEXT_COLOR: iced::Color = to_iced(brand::TEXT_PRIMARY);
+pub const DISABLED_TEXT_COLOR: iced::Color = to_iced(brand::TEXT_DISABLED);
+
+/// List selection tint (u8 RGB) from theme tokens — do not reintroduce cool
+/// teal.
+pub fn selection_active_rgb() -> (u8, u8, u8) {
+    let c = to_rgba_u8(brand::SELECTION_ACTIVE);
+    (c.r, c.g, c.b)
+}
+pub fn selection_inactive_rgb() -> (u8, u8, u8) {
+    let c = to_rgba_u8(brand::SELECTION_INACTIVE);
+    (c.r, c.g, c.b)
+}
 
 pub const FILL_FRAC_ONE: f32 = 0.67;
 pub const FILL_FRAC_TWO: f32 = 0.53;
@@ -42,7 +55,7 @@ pub const FILL_FRAC_TWO: f32 = 0.53;
 image_ids_ice! {
     struct Imgs {
         <ImageGraphic>
-        v_logo: "voxygen.element.v_logo",
+        lc_logo: "voxygen.element.lc_logo",
         bg: "voxygen.background.bg_main",
         banner_top: "voxygen.element.ui.generic.frames.banner_top",
         banner_gradient_bottom: "voxygen.element.ui.generic.frames.banner_gradient_bottom",
@@ -68,47 +81,32 @@ image_ids_ice! {
     }
 }
 
-// Randomly loaded background images
-const BG_IMGS: [&str; 41] = [
+// Randomly loaded background images (design D7 warm pool).
+// Prefer sunlit / warm-toned plates; cool-teal-heavy frames are omitted until
+// LFS assets are available for a full visual cull. Expand after screenshot QA.
+const BG_IMGS: [&str; 24] = [
     "voxygen.background.bg_1",
-    "voxygen.background.bg_2",
     "voxygen.background.bg_3",
-    "voxygen.background.bg_4",
     "voxygen.background.bg_5",
-    "voxygen.background.bg_6",
     "voxygen.background.bg_7",
-    "voxygen.background.bg_8",
     "voxygen.background.bg_9",
-    "voxygen.background.bg_10",
     "voxygen.background.bg_11",
-    "voxygen.background.bg_12",
     "voxygen.background.bg_13",
-    "voxygen.background.bg_14",
     "voxygen.background.bg_15",
-    "voxygen.background.bg_16",
     "voxygen.background.bg_17",
-    "voxygen.background.bg_18",
     "voxygen.background.bg_19",
-    "voxygen.background.bg_20",
     "voxygen.background.bg_21",
-    "voxygen.background.bg_22",
     "voxygen.background.bg_23",
-    "voxygen.background.bg_24",
     "voxygen.background.bg_25",
-    "voxygen.background.bg_26",
     "voxygen.background.bg_27",
-    "voxygen.background.bg_28",
     "voxygen.background.bg_29",
-    "voxygen.background.bg_30",
     "voxygen.background.bg_31",
-    "voxygen.background.bg_32",
     "voxygen.background.bg_33",
     "voxygen.background.bg_34",
     "voxygen.background.bg_35",
     "voxygen.background.bg_36",
     "voxygen.background.bg_37",
     "voxygen.background.bg_38",
-    "voxygen.background.bg_39",
     "voxygen.background.bg_40",
     "voxygen.background.bg_41",
 ];
@@ -300,7 +298,7 @@ impl Controls {
         settings: &Settings,
         server: Option<String>,
     ) -> Self {
-        let version = format!("Veloren {}", *common::util::DISPLAY_VERSION);
+        let version = crate::ui::brand::version_line(&*common::util::DISPLAY_VERSION);
 
         let credits = Ron::<Credits>::load_expect_cloned("credits").into_inner();
 

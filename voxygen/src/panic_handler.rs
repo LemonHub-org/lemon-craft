@@ -1,6 +1,8 @@
 use std::{panic, panic::PanicHookInfo, path::PathBuf};
 use tracing::error;
 
+use crate::ui::brand;
+
 pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
     // Set up panic handler to relay swish panic messages to the user
     let default_hook = panic::take_hook();
@@ -20,8 +22,9 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
         let potential_cause = potential_cause(panic_info);
 
         let mut dialog_message = format!(
-            "A critical error has occurred and Voxygen has been forced to terminate in an unusual \
+            "A critical error has occurred and {} has been forced to terminate in an unusual \
              manner. Details about the error can be found below.\n\nPanic reason: {}\n\n",
+            brand::PRODUCT_NAME,
             reason
         );
 
@@ -31,27 +34,46 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
             dialog_message.push_str(format!("Potential causes: {}\n\n", potential_cause).as_str())
         } else {
             dialog_message.push_str(
-                format!("> What should I do?\n\
-            \n\
-            We need your help to fix this! You can help by contacting us and \
-            reporting this problem. To do this, open an issue on the Veloren \
-            issue tracker:\n\
-            \n\
-            https://www.gitlab.com/veloren/veloren/issues/new\n\
-            \n\
-            If you're on the Veloren community Discord server, we'd be \
-            grateful if you could also post a message in the #support channel.
-            \n\
-            > What should I include?\n\
-            \n\
-            The error information below will be useful in finding and fixing \
-            the problem. Please include as much information about your setup \
-            and the events that led up to the panic as possible.
-            \n\
-            Voxygen has logged information about the problem (including this \
-            message) to the file {}. Please include the contents of this \
-            file in your bug report.
-            \n\n", logs_dir.join(&log_filename).display())
+                format!(
+                    "> What should I do?\n\nWe need your help to fix this! You can help by \
+                     contacting the {} maintainers and reporting this problem.\n\n",
+                    brand::PRODUCT_NAME
+                )
+                .as_str(),
+            );
+
+            if let Some(tracker) = brand::ISSUE_TRACKER_URL {
+                dialog_message.push_str(
+                    format!("Open an issue on the issue tracker:\n\n{tracker}\n\n").as_str(),
+                );
+            } else {
+                dialog_message.push_str(
+                    "No public issue tracker is configured yet. Please contact the maintainers \
+                     with the log file contents described below.\n\n",
+                );
+            }
+
+            if let Some(discord) = brand::DISCORD_URL {
+                dialog_message.push_str(
+                    format!(
+                        "If you're on the community Discord, please also post in the support \
+                         channel:\n{discord}\n\n"
+                    )
+                    .as_str(),
+                );
+            }
+
+            dialog_message.push_str(
+                format!(
+                    "> What should I include?\n\nThe error information below will be useful in \
+                     finding and fixing the problem. Please include as much information about \
+                     your setup and the events that led up to the panic as possible.
+            \n{} has logged information about the problem (including this message) to the file {}. \
+                     Please include the contents of this file in your bug report.
+            \n\n",
+                    brand::PRODUCT_NAME,
+                    logs_dir.join(&log_filename).display()
+                )
                 .as_str(),
             );
         }
@@ -67,7 +89,8 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
         );
 
         error!(
-            "VOXYGEN HAS PANICKED\n\n{}\n\nBacktrace:\n{:?}",
+            "{} HAS PANICKED\n\n{}\n\nBacktrace:\n{:?}",
+            brand::PRODUCT_NAME.to_uppercase(),
             dialog_message,
             backtrace::Backtrace::new(),
         );
@@ -79,7 +102,7 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
             let mbox = move || {
                 DialogBuilder::message()
                     .set_level(MessageLevel::Error)
-                    .set_title("Veloren has crashed!")
+                    .set_title(format!("{} has crashed!", brand::PRODUCT_NAME))
                     //somehow `<` and `>` are invalid characters and cause the msg to get replaced
                     // by some generic text thus i replace them
                     .set_text(dialog_message.replace('<', "[").replace('>', "]"))
@@ -135,8 +158,8 @@ fn potential_cause_to_string(potential_cause: PotentialPanicCause) -> String {
     match potential_cause {
         PotentialPanicCause::GraphicsCardIncompatibleWithRenderingBackend => {
             "This error occurs when your graphics card is not compatible with the selected \
-             graphics mode. This can be changed in the Airshipper settings window, however it may \
-             be the case that your graphics card is not supported by any graphics mode."
+             graphics mode. This can be changed in the launcher settings window, however it may be \
+             the case that your graphics card is not supported by any graphics mode."
                 .to_string()
         },
     }

@@ -1,5 +1,5 @@
 use super::{
-    HudInfo, Show, TEXT_COLOR, Windows, animate_by_pulse, get_quality_col,
+    HudInfo, Show, TEXT_COLOR, TOOLTIP_FRAME_FILL, Windows, animate_by_pulse, get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     util,
@@ -158,7 +158,7 @@ impl Widget for LootScroller<'_> {
                 ImageFrame::new(
                     [edge.cw180, edge.none, edge.cw270, edge.cw90],
                     [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                    Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                    TOOLTIP_FRAME_FILL,
                     5.0,
                 )
             },

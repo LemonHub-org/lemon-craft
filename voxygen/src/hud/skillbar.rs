@@ -1,7 +1,7 @@
 use super::{
     BLACK, BarNumbers, CRITICAL_HP_COLOR, HP_COLOR, HudInfo, LOW_HP_COLOR, POISE_COLOR,
     POISEBAR_TICK_COLOR, QUALITY_EPIC, QUALITY_LEGENDARY, STAMINA_COLOR, ShortcutNumbers,
-    TEXT_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, XP_COLOR, hotbar,
+    TEXT_BRAND_ACCENT, TEXT_COLOR, TOOLTIP_FRAME_FILL, UI_HIGHLIGHT_0, XP_COLOR, hotbar,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots, util,
@@ -698,7 +698,7 @@ impl<'a> Skillbar<'a> {
         Image::new(self.imgs.bar_content)
             .w_h(1.0, 21.0 * bag_space_percentage)
             .color(if bag_space_percentage < 0.6 {
-                Some(TEXT_VELORITE)
+                Some(TEXT_BRAND_ACCENT)
             } else if bag_space_percentage < 1.0 {
                 Some(LOW_HP_COLOR)
             } else {
@@ -725,7 +725,7 @@ impl<'a> Skillbar<'a> {
             .font_size(if bag_space.len() < 6 { 9 } else { 8 })
             .font_id(self.fonts.cyri.conrod_id)
             .color(if bag_space_percentage < 0.6 {
-                TEXT_VELORITE
+                TEXT_BRAND_ACCENT
             } else if bag_space_percentage < 1.0 {
                 LOW_HP_COLOR
             } else {
@@ -1051,7 +1051,7 @@ impl<'a> Skillbar<'a> {
             ImageFrame::new(
                 [edge.cw180, edge.none, edge.cw270, edge.cw90],
                 [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                TOOLTIP_FRAME_FILL,
                 5.0,
             )
         })
@@ -1070,7 +1070,7 @@ impl<'a> Skillbar<'a> {
                 ImageFrame::new(
                     [edge.cw180, edge.none, edge.cw270, edge.cw90],
                     [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                    Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                    TOOLTIP_FRAME_FILL,
                     5.0,
                 )
             },

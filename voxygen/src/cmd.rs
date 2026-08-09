@@ -61,7 +61,7 @@ pub enum ClientChatCommand {
     /// Displays the name of the site or biome where the current waypoint is
     /// located.
     Waypoint,
-    /// Opens the Veloren wiki in a browser
+    /// Opens the LemonCraft wiki in a browser (if configured)
     Wiki,
 }
 
@@ -744,20 +744,31 @@ fn handle_waypoint(
 
 /// Handles [`ClientChatCommand::Wiki`]
 ///
-/// With no arguments, opens the wiki homepage.
-/// With arguments, performs a search on the wiki for the specified terms.
-/// Returns an error if the browser fails to open.
+/// With no arguments, opens the wiki homepage when configured.
+/// With arguments, performs a search when a search template is configured.
+/// Returns an error if the wiki is not configured or the browser fails to open.
 fn handle_wiki(
     _session_state: &mut SessionState,
     _global_state: &mut GlobalState,
     args: Vec<String>,
 ) -> CommandResult {
-    let url = if args.is_empty() {
-        "https://wiki.veloren.net/".to_string()
-    } else {
-        let query_string = args.join("+");
+    use crate::ui::brand;
 
-        format!("https://wiki.veloren.net/w/index.php?search={query_string}")
+    let url = if args.is_empty() {
+        brand::WIKI_HOME_URL.map(|s| s.to_string())
+    } else {
+        brand::WIKI_SEARCH_URL_TEMPLATE.map(|tmpl| {
+            let query_string = args.join("+");
+            tmpl.replace("{query}", &query_string)
+        })
+    };
+
+    let Some(url) = url else {
+        return Err(Content::Plain(
+            "Wiki is not configured for LemonCraft yet. Ask the maintainers for documentation \
+             links."
+                .to_string(),
+        ));
     };
 
     open::that_detached(url)

@@ -83,9 +83,9 @@ impl Screen {
                 .enumerate()
                 .map(|(i, (state, server))| {
                     let color = if Some(i) == selected_server_index {
-                        (97, 255, 18)
+                        super::selection_active_rgb()
                     } else {
-                        (97, 97, 25)
+                        super::selection_inactive_rgb()
                     };
                     let button = Button::new(
                         state,

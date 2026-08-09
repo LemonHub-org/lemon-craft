@@ -1,6 +1,7 @@
 use super::{
     MapMarkers, QUALITY_COMMON, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE, TEXT_BG,
-    TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
+    TEXT_BLUE_COLOR, TEXT_BRAND_ACCENT, TEXT_COLOR, TEXT_GRAY_COLOR, TOOLTIP_FRAME_FILL,
+    UI_HIGHLIGHT_0, UI_MAIN,
     img_ids::{Imgs, ImgsRot},
 };
 use crate::{
@@ -282,7 +283,7 @@ impl Widget for Map<'_> {
             ImageFrame::new(
                 [edge.cw180, edge.none, edge.cw270, edge.cw90],
                 [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                TOOLTIP_FRAME_FILL,
                 5.0,
             )
         })
@@ -1510,7 +1511,7 @@ impl Widget for Map<'_> {
                             }),
                         ),
                         &site_tooltip,
-                        TEXT_VELORITE,
+                        TEXT_BRAND_ACCENT,
                     )
                     .set(state.ids.location_marker_group[i], ui);
                 handle_widget_mouse_events(
@@ -1550,7 +1551,7 @@ impl Widget for Map<'_> {
                         i18n.get_msg("hud-map-marked_location_remove")
                     ),
                     &site_tooltip,
-                    TEXT_VELORITE,
+                    TEXT_BRAND_ACCENT,
                 )
                 .set(state.ids.location_marker, ui)
                 .was_clicked()

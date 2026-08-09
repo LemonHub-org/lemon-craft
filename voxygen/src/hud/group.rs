@@ -1,7 +1,7 @@
 use super::{
     BLACK, BUFF_COLOR, DEBUFF_COLOR, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR, LOW_HP_COLOR,
-    QUALITY_EPIC, STAMINA_COLOR, Show, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0, UI_MAIN,
-    cr_color,
+    QUALITY_EPIC, STAMINA_COLOR, Show, TEXT_COLOR, TEXT_COLOR_GREY, TOOLTIP_FRAME_FILL,
+    UI_HIGHLIGHT_0, UI_MAIN, cr_color,
     img_ids::{Imgs, ImgsRot},
 };
 
@@ -165,7 +165,7 @@ impl Widget for Group<'_> {
             ImageFrame::new(
                 [edge.cw180, edge.none, edge.cw270, edge.cw90],
                 [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                TOOLTIP_FRAME_FILL,
                 5.0,
             )
         })

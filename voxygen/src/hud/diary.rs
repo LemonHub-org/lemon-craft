@@ -1,6 +1,6 @@
 use super::{
-    BLACK, CRITICAL_HP_COLOR, HP_COLOR, Position, PositionSpecifier, Show, TEXT_COLOR,
-    UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
+    BLACK, CRITICAL_HP_COLOR, HP_COLOR, Position, PositionSpecifier, QUALITY_LEGENDARY, Show,
+    TEXT_COLOR, TOOLTIP_FRAME_FILL, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
     img_ids::{Imgs, ImgsRot},
     item_imgs::{ItemImgs, animate_by_pulse},
 };
@@ -403,7 +403,7 @@ impl Widget for Diary<'_> {
             ImageFrame::new(
                 [edge.cw180, edge.none, edge.cw270, edge.cw90],
                 [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                TOOLTIP_FRAME_FILL,
                 5.0,
             )
         })
@@ -626,7 +626,7 @@ impl Widget for Diary<'_> {
                     };
 
                     let color = if skill_group != *sel_tab && have_points {
-                        Color::Rgba(0.92, 0.76, 0.0, frame_ani)
+                        QUALITY_LEGENDARY.alpha(frame_ani)
                     } else {
                         TEXT_COLOR
                     };
@@ -758,7 +758,7 @@ impl Widget for Diary<'_> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(28))
                 .color(if available_pts > 0 {
-                    Color::Rgba(0.92, 0.76, 0.0, frame_ani)
+                    QUALITY_LEGENDARY.alpha(frame_ani)
                 } else {
                     TEXT_COLOR
                 })

@@ -1,6 +1,6 @@
 # LemonCraft Brand Guide
 
-> Status: v0.1 — foundation for visual identity work (menus, HUD, logo, loading screens)
+> Status: v0.2 — foundation for visual identity work (menus, HUD, logo, loading screens)
 
 ## 1. Brand Essence
 
@@ -25,20 +25,27 @@ logo is a lemon rendered as a voxel model.
 
 ## 3. Color System
 
+The UI palette is **Warm Craft Fantasy** — deep warm-brown surfaces, warm
+off-white text, citrus accents. See
+[`visual-design-warm-craft-fantasy.md`](visual-design-warm-craft-fantasy.md)
+for the frozen palette v1 token table and rules.
+
+Key tokens:
+
 | Token | Hex | Usage |
 |---|---|---|
-| `lemon` (primary) | `#FFD600` | Brand accent, highlights, logo rind |
-| `zest` (secondary) | `#A8D400` | Crafting/positive states, secondary accents |
-| `pith` (light) | `#FDF6E3` | Backgrounds, cards, text on dark |
-| `peel` (dark) | `#1B1B10` | Deep backgrounds, title screen base |
-| `leaf` (green) | `#2E7D32` | Success/health accents |
-| `pit` (ink) | `#0E0E08` | Text, darkest surfaces |
+| `PANEL_BG` / `MENU_BG` | `#1A1712` | Panel/menu background |
+| `TEXT_PRIMARY` | `#F2EFE6` | Warm off-white body text |
+| `TEXT_EMPHASIS` | `#FFD980` | Menu emphasis (not quality gold) |
+| `ACCENT_LEMON` | `#D8E04A` | Brand citrus — outline/logo only |
+| `ACCENT_LIME` | `#C9D94A` | Secondary accent (replaces old teal) |
+| `SELECTION_ACTIVE` | `#61FF12` | List selection (signal green) |
 
 Principles:
 
-- Lemon yellow is the *single* dominant accent; use it sparingly for impact
-- Dark warm-green-black surfaces (`peel`/`pit`) carry the UI; `lemon` never
-  becomes a background color
+- Lemon/citrus is the *single* dominant accent; use sparingly for impact
+- Citrus must never read as legendary gold (`G ≥ R`, `B` low) — tests enforce
+- Deep warm backgrounds carry the UI; citrus never becomes a background color
 - Do not mix with cold blues for branding (reserved for item-quality semantics)
 
 ## 4. Typography
@@ -59,13 +66,12 @@ Principles:
 
 ## 6. Application
 
-- **Title screen**: `lemon` wordmark on `peel` background, voxel-lemon mark
+- **Title screen**: `lemon` wordmark on deep warm background, voxel-lemon mark
   center stage
-- **Loading screen**: mark + progress on `peel`, subtle lemon-yellow accents
-- **HUD**: `lemon` for the hotbar highlight and interaction prompts;
-  `zest` for positive feedback; item quality colors unchanged (RPG semantics)
-- **Error/danger**: keep warm red (`#C62828`) for safety semantics — never
-  yellow for errors
+- **Loading screen**: mark + progress on deep background, subtle citrus accents
+- **HUD**: citrus for hotbar highlight and interaction prompts; signal green
+  for positive feedback; item quality colors unchanged (RPG semantics)
+- **Error/danger**: keep warm red for safety semantics — never yellow for errors
 
 ## 7. Out of Scope (until art pipeline)
 

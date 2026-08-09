@@ -1,10 +1,11 @@
 [Desktop Entry]
 Type=Application
-Name=Veloren
-Comment=Veloren is a multiplayer voxel RPG written in Rust
-Comment[de]=Veloren ist ein in Rust geschriebenes Mehrspieler Voxel RPG
-Exec=veloren-voxygen
+Name=LemonCraft
+Comment=LemonCraft is a multiplayer voxel RPG written in Rust
+Comment[de]=LemonCraft ist ein in Rust geschriebenes Mehrspieler Voxel RPG
+Exec=lemoncraft-voxygen
 Categories=Game;Simulation;
-Keywords=veloren;sandbox;world;blocks;nodes;multiplayer;roleplaying;
-Icon=net.veloren.veloren
+Keywords=lemoncraft;sandbox;world;blocks;nodes;multiplayer;roleplaying;
+Icon=net.lemoncraft.lemoncraft
 Terminal=false
+StartupWMClass=lemoncraft

@@ -100,9 +100,9 @@ impl Screen {
             )
             .map(|(state, (i, map))| {
                 let color = if i == worlds.current {
-                    (97, 255, 18)
+                    super::selection_active_rgb()
                 } else {
-                    (97, 97, 25)
+                    super::selection_inactive_rgb()
                 };
                 let button = Button::new(
                     state,
@@ -441,9 +441,9 @@ impl Screen {
                                 .iter_mut()
                                 .map(|(shape, state)| {
                                     let color = if gen_opts.map_kind == shape {
-                                        (97, 255, 18)
+                                        super::selection_active_rgb()
                                     } else {
-                                        (97, 97, 25)
+                                        super::selection_inactive_rgb()
                                     };
                                     Button::new(
                                         state,

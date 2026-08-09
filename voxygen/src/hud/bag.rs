@@ -1,6 +1,6 @@
 use super::{
-    CRITICAL_HP_COLOR, HudInfo, LOW_HP_COLOR, Show, SlotGrid, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
-    cr_color,
+    CRITICAL_HP_COLOR, HudInfo, LOW_HP_COLOR, Show, SlotGrid, TEXT_COLOR, TOOLTIP_FRAME_FILL,
+    UI_HIGHLIGHT_0, UI_MAIN, cr_color,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{ArmorSlot, EquipSlot, SlotManager},
@@ -939,7 +939,7 @@ impl Widget for Bag<'_> {
             ImageFrame::new(
                 [edge.cw180, edge.none, edge.cw270, edge.cw90],
                 [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                TOOLTIP_FRAME_FILL,
                 5.0,
             )
         })
@@ -959,7 +959,7 @@ impl Widget for Bag<'_> {
                 ImageFrame::new(
                     [edge.cw180, edge.none, edge.cw270, edge.cw90],
                     [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                    Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                    TOOLTIP_FRAME_FILL,
                     5.0,
                 )
             })
@@ -978,7 +978,7 @@ impl Widget for Bag<'_> {
                     ImageFrame::new(
                         [edge.cw180, edge.none, edge.cw270, edge.cw90],
                         [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                        Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                        TOOLTIP_FRAME_FILL,
                         5.0,
                     )
                 },

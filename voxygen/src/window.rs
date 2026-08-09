@@ -266,7 +266,7 @@ impl Window {
 
         #[allow(unused_mut)] //ensure no weird issues on different platforms
         let mut attributes = winit::window::Window::default_attributes()
-            .with_title("Veloren")
+            .with_title(crate::ui::brand::WINDOW_TITLE)
             .with_inner_size(winit::dpi::LogicalSize::new(
                 window.size[0] as f64,
                 window.size[1] as f64,
@@ -276,7 +276,10 @@ impl Window {
         #[cfg(not(any(target_os = "windows", target_os = "macos")))]
         {
             use winit::platform::wayland::WindowAttributesExtWayland;
-            attributes = attributes.with_name("net.veloren.veloren", "veloren");
+            attributes = attributes.with_name(
+                crate::ui::brand::WAYLAND_APP_ID,
+                crate::ui::brand::WAYLAND_APP_TITLE,
+            );
         }
 
         // Avoid cpal / winit OleInitialize conflict
