@@ -8,11 +8,11 @@
     ),
     fonts: {
         "alkhemi": Font (
-            asset_key: "voxygen.font.NotoSansTC-Regular",
+            asset_key: "voxygen.font.WenQuanYiZenHei",
             scale_ratio: 1.0,
         ),
         "cyri": Font (
-            asset_key: "voxygen.font.NotoSansTC-Regular",
+            asset_key: "voxygen.font.WenQuanYiZenHei",
             scale_ratio: 1.0,
         ),
     }
