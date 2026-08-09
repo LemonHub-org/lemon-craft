@@ -2,8 +2,7 @@ use crate::util::*;
 use common::{
     comp::{
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
-        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, Scale, SkillSet, Stance,
-        Stats, Vel,
+        LightEmitter, Ori, PhysicsState, Poise, Pos, Presence, Scale, SkillSet, Stance, Stats, Vel,
         ability::{Amount, BASE_ABILITY_LIMIT, CharacterAbility},
         body::parts::Heads,
         buff::{BuffKind, Buffs},
@@ -476,7 +475,6 @@ pub struct ReadData<'a> {
     pub buffs: ReadStorage<'a, Buffs>,
     pub combos: ReadStorage<'a, Combo>,
     pub active_abilities: ReadStorage<'a, ActiveAbilities>,
-    pub loot_owners: ReadStorage<'a, LootOwner>,
     pub msm: ReadExpect<'a, MaterialStatManifest>,
     pub poises: ReadStorage<'a, Poise>,
     pub stances: ReadStorage<'a, Stance>,

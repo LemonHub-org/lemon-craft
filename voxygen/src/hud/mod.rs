@@ -110,7 +110,6 @@ use common::{
             ItemDefinitionIdOwned, ItemDesc, ItemI18n, MaterialStatManifest, Quality,
             tool::ToolKind,
         },
-        loot_owner::LootOwnerKind,
         skillset::{SkillGroupKind, SkillsPersistenceError, skills::Skill},
     },
     consts::{MAX_NPCINTERACT_RANGE, MAX_PICKUP_RANGE},
@@ -227,6 +226,9 @@ const MARKED_NPC: Color = Color::Rgba(1.0, 0.8, 0.0, 1.0);
 const UI_MAIN: Color = to_conrod(brand::UI_MAIN);
 const UI_SUBTLE: Color = to_conrod(brand::UI_SUBTLE);
 const UI_HIGHLIGHT_0: Color = to_conrod(brand::UI_HIGHLIGHT);
+const SCROLLBAR_COLOR: [f32; 4] = brand::SCROLLBAR_THUMB;
+const SETTINGS_SURFACE: Color = to_conrod(brand::PANEL_FILL);
+const SETTINGS_SIDEBAR: Color = to_conrod(brand::PANEL_BG_ALT);
 // Pull-Down menu BG color
 const MENU_BG: Color = to_conrod(brand::MENU_BG);
 
@@ -1263,48 +1265,14 @@ pub struct Floaters {
 }
 
 #[derive(Clone)]
-pub enum HudLootOwner {
-    Name(Content),
-    Group,
-    Unknown,
-}
-
-#[derive(Clone)]
 pub enum HudCollectFailedReason {
     InventoryFull,
-    LootOwned {
-        owner: HudLootOwner,
-        expiry_secs: u64,
-    },
 }
 
 impl HudCollectFailedReason {
-    pub fn from_server_reason(reason: &CollectFailedReason, ecs: &specs::World) -> Self {
+    pub fn from_server_reason(reason: &CollectFailedReason) -> Self {
         match reason {
             CollectFailedReason::InventoryFull => HudCollectFailedReason::InventoryFull,
-            CollectFailedReason::LootOwned { owner, expiry_secs } => {
-                let owner = match owner {
-                    LootOwnerKind::Player(owner_uid) => {
-                        let maybe_owner_name = ecs.entity_from_uid(*owner_uid).and_then(|entity| {
-                            ecs.read_storage::<comp::Stats>()
-                                .get(entity)
-                                .map(|stats| stats.name.clone())
-                        });
-
-                        if let Some(name) = maybe_owner_name {
-                            HudLootOwner::Name(name)
-                        } else {
-                            HudLootOwner::Unknown
-                        }
-                    },
-                    LootOwnerKind::Group(_) => HudLootOwner::Group,
-                };
-
-                HudCollectFailedReason::LootOwned {
-                    owner,
-                    expiry_secs: *expiry_secs,
-                }
-            },
         }
     }
 }

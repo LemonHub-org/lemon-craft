@@ -17,8 +17,8 @@ use common::{
     LoadoutBuilder, ViewDistances,
     character::CharacterId,
     comp::{
-        self, BASE_ABILITY_LIMIT, CapsulePrism, ChatType, Content, Group, Inventory, LootOwner,
-        Object, Player, Poise, Presence, PresenceKind, item::ItemKind, misc::PortalData, object,
+        self, BASE_ABILITY_LIMIT, CapsulePrism, ChatType, Content, Group, Inventory, Object,
+        Player, Poise, Presence, PresenceKind, item::ItemKind, misc::PortalData, object,
     },
     interaction::Interaction,
     link::{Is, Link, LinkHandle},
@@ -71,7 +71,6 @@ pub trait StateExt {
         ori: comp::Ori,
         vel: comp::Vel,
         item: comp::PickupItem,
-        loot_owner: Option<LootOwner>,
     ) -> Option<EcsEntity>;
     fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
         &mut self,
@@ -282,14 +281,12 @@ impl StateExt for State {
         ori: comp::Ori,
         vel: comp::Vel,
         world_item: comp::PickupItem,
-        loot_owner: Option<LootOwner>,
     ) -> Option<EcsEntity> {
         // Attempt merging with any nearby entities if possible
         {
             use crate::sys::item::get_nearby_mergeable_items;
 
             let positions = self.ecs().read_storage::<comp::Pos>();
-            let loot_owners = self.ecs().read_storage::<LootOwner>();
             let mut items = self.ecs().write_storage::<comp::PickupItem>();
             let entities = self.ecs().entities();
             let spatial_grid = self.ecs().read_resource();
@@ -297,8 +294,7 @@ impl StateExt for State {
             let nearby_items = get_nearby_mergeable_items(
                 &world_item,
                 &pos,
-                loot_owner.as_ref(),
-                (&entities, &items, &positions, &loot_owners, &spatial_grid),
+                (&entities, &items, &positions, &spatial_grid),
             );
 
             // Merge the nearest item if possible, skip to creating a drop otherwise
@@ -345,7 +341,6 @@ impl StateExt for State {
                     // Delete the item drop after 5 minutes
                     timeout: Duration::from_secs(300),
                 })
-                .maybe_with(loot_owner)
                 .maybe_with(light_emitter)
                 .build(),
         )

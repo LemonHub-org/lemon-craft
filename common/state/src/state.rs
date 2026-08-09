@@ -307,7 +307,6 @@ impl State {
         ecs.register::<comp::Arcing>();
         ecs.register::<comp::Pool>();
         ecs.register::<comp::Alignment>();
-        ecs.register::<comp::LootOwner>();
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Stance>();
         ecs.register::<comp::Teleporting>();

@@ -357,10 +357,7 @@ impl SessionState {
                                 self.hud.add_failed_block_pickup(
                                     // TODO: Possibly support volumes.
                                     VolumePos::terrain(pos),
-                                    HudCollectFailedReason::from_server_reason(
-                                        &reason,
-                                        client.state().ecs(),
-                                    ),
+                                    HudCollectFailedReason::from_server_reason(&reason),
                                 );
                             },
                             InventoryUpdateEvent::EntityCollectFailed {
@@ -370,10 +367,7 @@ impl SessionState {
                                 if let Some(entity) = client.state().ecs().entity_from_uid(uid) {
                                     self.hud.add_failed_entity_pickup(
                                         entity,
-                                        HudCollectFailedReason::from_server_reason(
-                                            &reason,
-                                            client.state().ecs(),
-                                        ),
+                                        HudCollectFailedReason::from_server_reason(&reason),
                                     );
                                 }
                             },

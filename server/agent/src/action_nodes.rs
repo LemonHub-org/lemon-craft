@@ -1087,30 +1087,8 @@ impl AgentData<'_> {
                     let wants_pickup = !avoids_item_drops
                         && (is_humanoid || matches!(item, body::item::Body::Consumable));
 
-                    // The agent will attempt to pickup the item if it wants to pick it up and
-                    // is allowed to
-                    let attempt_pickup = wants_pickup
-                    && read_data
-                        .loot_owners
-                        .get(entity).is_none_or(|loot_owner| {
-                            !(is_humanoid
-                                && loot_owner.can_pickup(
-                                    *self.uid,
-                                    read_data.groups.get(entity),
-                                    self.alignment,
-                                    self.body,
-                                    None,
-                                )
-                                && (
-                                    !loot_owner.is_soft() ||
-                                    // If we are hostile towards the owner, ignore their wish to not pick up the loot
-                                    loot_owner
-                                        .uid()
-                                        .and_then(|uid| read_data.id_maps.uid_entity(uid)).is_none_or(|entity| !is_enemy(self, entity, read_data)))
-                                )
-                        });
-
-                    if attempt_pickup {
+                    // The agent will attempt to pickup the item if it wants to pick it up
+                    if wants_pickup {
                         Some((entity, false))
                     } else {
                         None

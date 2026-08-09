@@ -19,7 +19,6 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         WriteStorage<'a, comp::PickupItem>,
         ReadStorage<'a, comp::Pos>,
-        ReadStorage<'a, comp::LootOwner>,
         Read<'a, CachedSpatialGrid>,
         Read<'a, ProgramTime>,
         Read<'a, EventBus<DeleteEvent>>,
@@ -31,15 +30,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut common_ecs::Job<Self>,
-        (
-            entities,
-            mut items,
-            positions,
-            loot_owners,
-            spatial_grid,
-            program_time,
-            delete_bus,
-        ): Self::SystemData,
+        (entities, mut items, positions, spatial_grid, program_time, delete_bus): Self::SystemData,
     ) {
         // Contains items that have been checked for merge, or that were merged into
         // another one
@@ -49,9 +40,7 @@ impl<'a> System<'a> for Sys {
         // Delete events are emitted when this is dropped
         let mut delete_emitter = delete_bus.emitter();
 
-        for (entity, item, pos, loot_owner) in
-            (&entities, &items, &positions, loot_owners.maybe()).join()
-        {
+        for (entity, item, pos) in (&entities, &items, &positions).join() {
             // Do not process items that are already being merged
             if merged.contains_key(&entity) {
                 continue;
@@ -69,8 +58,7 @@ impl<'a> System<'a> for Sys {
             for (source_entity, _) in get_nearby_mergeable_items(
                 item,
                 pos,
-                loot_owner,
-                (&entities, &items, &positions, &loot_owners, &spatial_grid),
+                (&entities, &items, &positions, &spatial_grid),
             ) {
                 // Prevent merging an item multiple times, we cannot
                 // do this in the above filter since we mutate `merged` below
@@ -120,14 +108,12 @@ impl<'a> System<'a> for Sys {
 pub fn get_nearby_mergeable_items<'a>(
     item: &'a comp::PickupItem,
     pos: &'a comp::Pos,
-    loot_owner: Option<&'a comp::LootOwner>,
-    (entities, items, positions, loot_owners, spatial_grid): (
+    (entities, items, positions, spatial_grid): (
         &'a Entities<'a>,
         // We do not actually need write access here, but currently all callers of this function
         // have a WriteStorage<Item> in scope which we cannot *downcast* into a ReadStorage
         &'a WriteStorage<'a, comp::PickupItem>,
         &'a ReadStorage<'a, comp::Pos>,
-        &'a ReadStorage<'a, comp::LootOwner>,
         &'a CachedSpatialGrid,
     ),
 ) -> impl Iterator<Item = (Entity, f32)> + 'a {
@@ -137,21 +123,20 @@ pub fn get_nearby_mergeable_items<'a>(
         .in_circle_aabr(pos.0.xy(), MAX_ITEM_MERGE_DIST)
         // Filter out any unrelated entities
         .flat_map(move |entity| {
-            (entities, items, positions, loot_owners.maybe())
+            (entities, items, positions)
                 .lend_join()
                 .get(entity, entities)
-                .and_then(|(entity, item, other_position, loot_owner)| {
+                .and_then(|(entity, item, other_position)| {
                     let distance_sqrd = other_position.0.distance_squared(pos.0);
                     if distance_sqrd < MAX_ITEM_MERGE_DIST.powi(2) {
-                        Some((entity, item, distance_sqrd, loot_owner))
+                        Some((entity, item, distance_sqrd))
                     } else {
                         None
                     }
                 })
         })
         // Filter by "mergeability"
-        .filter_map(move |(entity, other_item, distance, other_loot_owner)| {
-            (other_loot_owner.map(|owner| owner.owner()) == loot_owner.map(|owner| owner.owner())
-                && item.can_merge(other_item)).then_some((entity, distance))
+        .filter_map(move |(entity, other_item, distance)| {
+            item.can_merge(other_item).then_some((entity, distance))
         })
 }

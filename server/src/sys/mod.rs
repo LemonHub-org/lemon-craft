@@ -4,7 +4,6 @@ pub mod chunk_serialize;
 pub mod entity_sync;
 pub mod invite_timeout;
 pub mod item;
-pub mod loot;
 pub mod metrics;
 pub mod msg;
 pub mod object;

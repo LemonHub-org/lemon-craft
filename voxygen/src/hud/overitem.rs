@@ -3,9 +3,7 @@ use super::img_ids::Imgs;
 use crate::{
     GlobalState,
     game_input::GameInput,
-    hud::{
-        CollectFailedData, HudCollectFailedReason, HudLootOwner, controller_icons as icon_utils,
-    },
+    hud::{CollectFailedData, HudCollectFailedReason, controller_icons as icon_utils},
     ui::{RichText, fonts::Fonts},
     window::LastInput,
 };
@@ -250,22 +248,6 @@ impl Widget for Overitem<'_> {
             let text = match collect_failed_data.reason {
                 HudCollectFailedReason::InventoryFull => {
                     self.localized_strings.get_msg("hud-inventory_full")
-                },
-                HudCollectFailedReason::LootOwned { owner, expiry_secs } => {
-                    let owner_name = match owner {
-                        HudLootOwner::Name(name) => {
-                            Cow::Owned(self.localized_strings.get_content(&name))
-                        },
-                        HudLootOwner::Group => self.localized_strings.get_msg("hud-another_group"),
-                        HudLootOwner::Unknown => self.localized_strings.get_msg("hud-someone_else"),
-                    };
-                    self.localized_strings.get_msg_ctx(
-                        "hud-owned_by_for_secs",
-                        &i18n::fluent_args! {
-                            "name" => owner_name,
-                            "secs" => expiry_secs,
-                        },
-                    )
                 },
             };
 

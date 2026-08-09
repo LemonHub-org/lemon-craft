@@ -30,7 +30,6 @@ macro_rules! synced_components {
             heads: Heads,
             poise: Poise,
             light_emitter: LightEmitter,
-            loot_owner: LootOwner,
             item: PickupItem,
             thrown_item: ThrownItem,
             scale: Scale,
@@ -179,10 +178,6 @@ impl NetSync for Poise {
 }
 
 impl NetSync for LightEmitter {
-    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
-}
-
-impl NetSync for LootOwner {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

@@ -20,7 +20,6 @@ use crate::{
             recipe_book::RecipeBook,
             slot::{EquipSlot, Slot, SlotError},
         },
-        loot_owner::LootOwnerKind,
         slot::{InvSlotId, SlotId},
     },
     recipe::{Recipe, RecipeBookManifest},
@@ -1314,10 +1313,6 @@ impl Component for Inventory {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum CollectFailedReason {
     InventoryFull,
-    LootOwned {
-        owner: LootOwnerKind,
-        expiry_secs: u64,
-    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

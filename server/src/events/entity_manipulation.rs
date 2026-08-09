@@ -6,7 +6,6 @@ use crate::{
     comp::{
         BuffKind, BuffSource, PhysicsState,
         agent::{Agent, AgentEvent, Sound, SoundKind},
-        loot_owner::LootOwner,
         skillset::SkillGroupKind,
     },
     error,
@@ -35,7 +34,6 @@ use common::{
         chat::{KillSource, KillType},
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
-        loot_owner::{LootOwnerKind, ONWERSHIP_TIMEOUT_SLOW},
         projectile::{ProjectileAttack, ProjectileConstructorKind, ProjectileExplosionTarget},
     },
     consts::TELEPORTER_RADIUS,
@@ -53,7 +51,6 @@ use common::{
     explosion::{ColorPreset, TerrainReplacementPreset},
     generation::{EntityConfig, EntityInfo},
     link::Is,
-    lottery::distribute_many,
     mounting::{Mounting, Rider, VolumeRider},
     npc::NPC_NAMES,
     outcome::{HealthChangeInfo, Outcome},
@@ -1054,7 +1051,7 @@ impl ServerEvent for DestroyEvent {
                 });
             }
 
-            let mut exp_awards = Vec::<(Entity, f32, Option<Group>)>::new();
+            let exp_awards;
             // Award EXP to damage contributors
             //
             // NOTE: Debug logging is disabled by default for this module - to enable it add
@@ -1258,78 +1255,18 @@ impl ServerEvent for DestroyEvent {
                             .remove(ev.entity)
                             .map(|comp::ItemDrops(item)| item)
                     {
-                        // Remove entries where zero exp was awarded - this happens because some
-                        // entities like Object bodies don't give EXP.
-                        let mut item_receivers = HashMap::new();
-                        for (entity, exp, group) in exp_awards {
-                            if exp >= f32::EPSILON {
-                                let loot_owner = if let Some(group) = group {
-                                    Some(LootOwnerKind::Group(group))
-                                } else {
-                                    let uid = data.bodies.get(entity).and_then(|body| {
-                                        // Only humanoids are awarded loot ownership - if the winner
-                                        // was a non-humanoid NPC the loot will be free-for-all
-                                        if matches!(body, Body::Humanoid(_)) {
-                                            data.uids.get(entity).copied()
-                                        } else {
-                                            None
-                                        }
-                                    });
-
-                                    uid.map(LootOwnerKind::Player)
-                                };
-
-                                *item_receivers.entry(loot_owner).or_insert(0.0) += exp;
-                            }
-                        }
-
                         let mut item_offset_spiral =
                             Spiral2d::new().map(|offset| offset.as_::<f32>() * 0.5);
 
                         let mut rng = rand::rng();
-                        let mut spawn_item = |item, loot_owner| {
+                        for item in flatten_counted_items(&items, &data.ability_map, &data.msm) {
                             let offset = item_offset_spiral.next().unwrap_or_default();
                             emitters.emit(CreateItemDropEvent {
                                 pos: Pos(pos.0 + Vec3::unit_z() * 0.25 + offset),
                                 vel: vel.copied().unwrap_or(comp::Vel(Vec3::zero())),
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                                 item: PickupItem::new(item, *data.program_time, false),
-                                loot_owner: if let Some(loot_owner) = loot_owner {
-                                    debug!(
-                                        "Assigned UID {loot_owner:?} as the winner for the loot \
-                                         drop"
-                                    );
-                                    Some(LootOwner::new(loot_owner, false, ONWERSHIP_TIMEOUT_SLOW))
-                                } else {
-                                    debug!("No loot owner");
-                                    None
-                                },
                             })
-                        };
-
-                        if item_receivers.is_empty() {
-                            debug!("No item receivers");
-                            for item in flatten_counted_items(&items, &data.ability_map, &data.msm)
-                            {
-                                spawn_item(item, None)
-                            }
-                        } else {
-                            let mut rng = rand::rng();
-                            distribute_many(
-                                item_receivers
-                                    .iter()
-                                    .map(|(loot_owner, weight)| (*weight, *loot_owner)),
-                                &mut rng,
-                                &items,
-                                |(amount, _)| *amount,
-                                |(_, item), loot_owner, count| {
-                                    for item in
-                                        item.stacked_duplicates(&data.ability_map, &data.msm, count)
-                                    {
-                                        spawn_item(item, loot_owner)
-                                    }
-                                },
-                            );
                         }
                     }
                 }

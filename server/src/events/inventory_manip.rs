@@ -9,10 +9,9 @@ use vek::*;
 
 use common::{
     comp::{
-        self, LootOwner, PickupItem,
+        self, PickupItem,
         group::members,
         item::{self, Lantern, MaterialStatManifest, flatten_counted_items, tool::AbilityMap},
-        loot_owner::{LootOwnerKind, ONWERSHIP_TIMEOUT_FAST, ONWERSHIP_TIMEOUT_SLOW},
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
@@ -104,10 +103,8 @@ pub struct InventoryManipData<'a> {
     character_states: ReadStorage<'a, comp::CharacterState>,
     healths: ReadStorage<'a, comp::Health>,
     uids: ReadStorage<'a, Uid>,
-    loot_owners: ReadStorage<'a, comp::LootOwner>,
     alignments: ReadStorage<'a, comp::Alignment>,
     bodies: ReadStorage<'a, comp::Body>,
-    players: ReadStorage<'a, comp::Player>,
     groups: ReadStorage<'a, comp::Group>,
     stats: ReadStorage<'a, comp::Stats>,
     clients: ReadStorage<'a, Client>,
@@ -189,39 +186,6 @@ impl ServerEvent for InventoryManipEvent {
                             ?entity_cylinder,
                             "Failed to pick up item as not within range, Uid: {}", pickup_uid
                         );
-                        continue;
-                    }
-
-                    // If there's a loot owner for the item being picked up, then
-                    // determine whether the pickup should be rejected.
-                    let ownership_check_passed =
-                        data.loot_owners.get(item_entity).is_none_or(|loot_owner| {
-                            let can_pickup = loot_owner.can_pickup(
-                                *uid,
-                                data.groups.get(entity),
-                                data.alignments.get(entity),
-                                data.stats
-                                    .get(entity)
-                                    .map(|stats| &stats.original_body)
-                                    .or_else(|| data.bodies.get(entity)),
-                                data.players.get(entity),
-                            );
-                            if !can_pickup {
-                                let event = InventoryUpdateEvent::EntityCollectFailed {
-                                    entity: pickup_uid,
-                                    reason: CollectFailedReason::LootOwned {
-                                        owner: loot_owner.owner(),
-                                        expiry_secs: loot_owner.time_until_expiration().as_secs(),
-                                    },
-                                };
-                                if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
-                                    buf.push(event);
-                                }
-                            }
-                            can_pickup
-                        });
-
-                    if !ownership_check_passed {
                         continue;
                     }
 
@@ -513,11 +477,6 @@ impl ServerEvent for InventoryManipEvent {
                             vel: comp::Vel(Vec3::zero()),
                             ori: data.orientations.get(entity).copied().unwrap_or_default(),
                             item: PickupItem::new(item, *data.program_time, true),
-                            loot_owner: Some(LootOwner::new(
-                                LootOwnerKind::Player(*uid),
-                                false,
-                                ONWERSHIP_TIMEOUT_FAST,
-                            )),
                         });
                     }
                 },
@@ -556,7 +515,6 @@ impl ServerEvent for InventoryManipEvent {
                                                 .copied()
                                                 .unwrap_or_default(),
                                             PickupItem::new(item, *data.program_time, true),
-                                            *uid,
                                         )
                                     }));
                                 }
@@ -602,7 +560,6 @@ impl ServerEvent for InventoryManipEvent {
                                                         *data.program_time,
                                                         true,
                                                     ),
-                                                    *uid,
                                                 ));
                                             }
                                         }
@@ -716,7 +673,6 @@ impl ServerEvent for InventoryManipEvent {
                                                 .copied()
                                                 .unwrap_or_default(),
                                             PickupItem::new(item, *data.program_time, true),
-                                            *uid,
                                         )
                                     }));
                                 }
@@ -826,7 +782,6 @@ impl ServerEvent for InventoryManipEvent {
                                         *pos,
                                         data.orientations.get(entity).copied().unwrap_or_default(),
                                         PickupItem::new(item, *data.program_time, true),
-                                        *uid,
                                     )
                                 },
                             ));
@@ -885,7 +840,6 @@ impl ServerEvent for InventoryManipEvent {
                             *pos,
                             data.orientations.get(entity).copied().unwrap_or_default(),
                             PickupItem::new(item, *data.program_time, true),
-                            *uid,
                         ));
                     }
                     if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
@@ -910,7 +864,6 @@ impl ServerEvent for InventoryManipEvent {
                             *pos,
                             data.orientations.get(entity).copied().unwrap_or_default(),
                             PickupItem::new(item, *data.program_time, true),
-                            *uid,
                         ));
                     }
                     if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
@@ -1108,7 +1061,6 @@ impl ServerEvent for InventoryManipEvent {
                                     *pos,
                                     data.orientations.get(entity).copied().unwrap_or_default(),
                                     item,
-                                    *uid,
                                 ));
                             }
                         }
@@ -1142,9 +1094,9 @@ impl ServerEvent for InventoryManipEvent {
         }
 
         // Drop items, Debug items should simply disappear when dropped
-        for (pos, ori, mut item, owner) in dropped_items
+        for (pos, ori, mut item) in dropped_items
             .into_iter()
-            .filter(|(_, _, i, _)| !matches!(i.item().quality(), item::Quality::Debug))
+            .filter(|(_, _, i)| !matches!(i.item().quality(), item::Quality::Debug))
         {
             item.remove_debug_items();
 
@@ -1153,11 +1105,6 @@ impl ServerEvent for InventoryManipEvent {
                 vel: comp::Vel::default(),
                 ori,
                 item,
-                loot_owner: Some(LootOwner::new(
-                    LootOwnerKind::Player(owner),
-                    true,
-                    ONWERSHIP_TIMEOUT_SLOW,
-                )),
             })
         }
     }

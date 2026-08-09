@@ -1,6 +1,6 @@
 use std::{f32::consts::PI, ops::Mul};
 
-use common::{comp::loot_owner::ONWERSHIP_TIMEOUT_FAST, rtsim::DialogueKind};
+use common::rtsim::DialogueKind;
 use common_state::{BlockChange, ScheduledBlockChange};
 use specs::{DispatcherBuilder, Join, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use tracing::error;
@@ -13,7 +13,6 @@ use common::{
         agent::{AgentEvent, Sound, SoundKind},
         inventory::slot::EquipSlot,
         item::{MaterialStatManifest, flatten_counted_items},
-        loot_owner::LootOwnerKind,
         tool::AbilityMap,
     },
     consts::{MAX_INTERACT_RANGE, MAX_NPCINTERACT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
@@ -420,9 +419,6 @@ impl ServerEvent for MineBlockEvent {
                             }
                         }
                         for item in items {
-                            let loot_owner = maybe_uid.map(LootOwnerKind::Player).map(|owner| {
-                                comp::LootOwner::new(owner, false, ONWERSHIP_TIMEOUT_FAST)
-                            });
                             create_item_drop_emitter.emit(CreateItemDropEvent {
                                 pos: comp::Pos(ev.pos.map(|e| e as f32) + Vec3::broadcast(0.5)),
                                 vel: comp::Vel(
@@ -433,7 +429,6 @@ impl ServerEvent for MineBlockEvent {
                                 ),
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                                 item: comp::PickupItem::new(item, *program_time, false),
-                                loot_owner,
                             });
                         }
                     }

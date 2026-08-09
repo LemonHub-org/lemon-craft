@@ -3,7 +3,7 @@ use crate::{
     character::CharacterId,
     combat::{AttackSource, AttackTarget, CombatEffect, DeathEffects, RiderEffects},
     comp::{
-        self, ArcProperties, DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
+        self, ArcProperties, DisconnectReason, Ori, Pos, UnresolvedChatMsg, Vel,
         ability::Dodgeable,
         agent::Sound,
         beam,
@@ -203,7 +203,6 @@ pub struct CreateItemDropEvent {
     pub vel: Vel,
     pub ori: Ori,
     pub item: comp::PickupItem,
-    pub loot_owner: Option<LootOwner>,
 }
 
 pub struct CreateObjectEvent {

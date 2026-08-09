@@ -23,7 +23,6 @@ pub mod inventory;
 pub mod invite;
 mod last;
 mod location;
-pub mod loot_owner;
 pub mod melee;
 pub mod misc;
 pub mod ori;
@@ -91,7 +90,6 @@ pub use self::{
     },
     last::Last,
     location::{MapMarker, MapMarkerChange, MapMarkerUpdate, Waypoint, WaypointArea},
-    loot_owner::LootOwner,
     melee::{Melee, MeleeConstructor, MeleeConstructorKind},
     misc::Object,
     ori::Ori,

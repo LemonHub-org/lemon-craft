@@ -7,10 +7,7 @@ pub mod ping;
 pub mod register;
 pub mod terrain;
 
-use crate::{
-    client::Client,
-    sys::{loot, pets},
-};
+use crate::{client::Client, sys::pets};
 use common_ecs::{System, dispatch};
 use serde::de::DeserializeOwned;
 use specs::DispatcherBuilder;
@@ -26,7 +23,6 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<register::Sys>(dispatch_builder, &[]);
     dispatch::<terrain::Sys>(dispatch_builder, &[]);
     dispatch::<pets::Sys>(dispatch_builder, &[]);
-    dispatch::<loot::Sys>(dispatch_builder, &[]);
     dispatch::<network_events::Sys>(dispatch_builder, &[]);
 }
 
