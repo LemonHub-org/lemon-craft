@@ -16,7 +16,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### LemonCraft (divergence from Veloren)
+
+#### Added
+
+- LemonCraft branding: rebranded crates/bins (`lemoncraft-*`), LemonCraft
+  logo, desktop/appstream metadata, brand guide (`docs/brand.md`)
+- **Lemon Fresh** light theme for menus and HUD (palette v2, lemon accents;
+  `docs/visual-design-lemon-fresh.md`); Source Han Sans (Noto Sans CJK SC)
+  as the Simplified Chinese font
+- Simplified Chinese localization completed: 483 missing keys, 3 new files
+  (tutorial, courier quests, quest items) — 48/48 files, 0 missing
+- Content pack mechanism design (`docs/content-packs.md`); `FileSystem`
+  generalized to N overlay sources (P0)
+- Windowed mode by default (was fullscreen since 0.15)
+
+#### Removed
+
+- WASI plugin system (wasmtime host, plugin crate, plugin cache, plugin
+  features across crates)
+- Loot ownership system: drops are free-for-all, no pickup restrictions or
+  expiry, nearby drops merge freely
+
+#### Changed
+
+- Visual direction: dark brown UI (v1, rejected) → light lemon theme (v2)
+
+### Added (inherited upstream master since 0.18.0)
 
 - Translators can now use fragment-based templates for modular weapons.
 - Airship captains can now be asked where they're currently heading, and where they're heading after reaching the current destination.
