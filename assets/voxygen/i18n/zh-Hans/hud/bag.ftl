@@ -66,3 +66,6 @@ hud-bag-split_swap_slots_drop_items =
         [1] 这将导致 1 件物品掉落在地上。你确定吗？
        *[other] 这将导致 { $slot_deficit } 件物品掉落在地上。你确定吗？
     }
+hud-context-menu-use = 使用
+hud-context-menu-drop = 丢弃
+hud-context-menu-cancel = 取消

@@ -114,3 +114,4 @@ main-login-banned_until =
     解封时间：{ $end_date }
 main-singleplayer-map_shape-circle = 圆形
 main-singleplayer-map_shape-square = 方形
+main-credits-sound = 音效

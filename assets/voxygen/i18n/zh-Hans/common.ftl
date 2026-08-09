@@ -109,3 +109,4 @@ hud-diary-sections-recipes-title = 配方
 hud-battle-mode = 战斗模式
 hud-waypoint = 路标
 common-kind-recipegroup = 配方
+common-kind-quest = 任务

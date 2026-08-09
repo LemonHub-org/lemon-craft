@@ -181,3 +181,8 @@ hud-settings-keybind-helper =
     鼠标 2 键取消设置
 hud-settings-subtitles = 字幕
 hud-settings-show_all_recipes = 显示所有配方
+hud-settings-show_chat_timestamp = 在聊天中显示时间戳
+hud-settings-cloud_rendering_mode-flat = 扁平
+hud-settings-instrument_volume = 乐器音量
+hud-settings-indoor_ambience = 室内环境音检测
+hud-settings-keyboard-binding = 按键绑定

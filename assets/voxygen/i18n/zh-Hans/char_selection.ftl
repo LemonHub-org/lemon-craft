@@ -27,3 +27,4 @@ char_selection-hardcore_tooltip =
 
     其余难度不变。
 char_selection-editing_character = 正在保存角色...
+char_selection-height_scale = 身高

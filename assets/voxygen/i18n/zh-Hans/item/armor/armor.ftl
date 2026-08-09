@@ -752,3 +752,7 @@ armor-misc-head-hare_hat = 复活节兔儿帽
     .desc = 复活节特别款.
 armor-misc-head-scarlet_spectacles = 猩红眼镜
     .desc = 假扮成夜间出没的邪恶生物，对一同冒险的伙伴搞恶作剧，这副眼镜堪称绝佳道具！ 注:离柜后概不负责。
+armor-misc-chest-worker_pink_0 = 粉色工装衬衫
+    .desc = 直到不久前，它还是一位农民的穿着。
+armor-misc-chest-worker_pink_1 = 粉色工装衬衫
+    .desc = 直到不久前，它还是一位农民的穿着。

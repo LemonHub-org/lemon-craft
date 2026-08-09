@@ -924,3 +924,6 @@ name-body-crustacean-karkatha =
 name-body-plugin-plugin =
     .fem = 未知
     .masc = 未知
+name-body-biped_small-umber_legoom =
+    .fem = 赭褐乐果兽
+    .masc = 赭褐乐果兽
