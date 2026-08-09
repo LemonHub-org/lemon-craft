@@ -25,27 +25,29 @@ logo is a lemon rendered as a voxel model.
 
 ## 3. Color System
 
-The UI palette is **Warm Craft Fantasy** — deep warm-brown surfaces, warm
-off-white text, citrus accents. See
-[`visual-design-warm-craft-fantasy.md`](visual-design-warm-craft-fantasy.md)
-for the frozen palette v1 token table and rules.
+The UI palette is **Lemon Fresh** — warm-white light surfaces, dark ink text,
+real lemon accents that match the game's bright voxel world. See
+[`visual-design-lemon-fresh.md`](visual-design-lemon-fresh.md) for the palette
+v2 token table and rules.
 
 Key tokens:
 
 | Token | Hex | Usage |
 |---|---|---|
-| `PANEL_BG` / `MENU_BG` | `#1A1712` | Panel/menu background |
-| `TEXT_PRIMARY` | `#F2EFE6` | Warm off-white body text |
-| `TEXT_EMPHASIS` | `#FFD980` | Menu emphasis (not quality gold) |
-| `ACCENT_LEMON` | `#D8E04A` | Brand citrus — outline/logo only |
-| `ACCENT_LIME` | `#C9D94A` | Secondary accent (replaces old teal) |
+| `PANEL_BG` / `MENU_BG` | `#FDF6E3` | Warm-white panel/menu background |
+| `TEXT_PRIMARY` | `#2B2B1F` | Dark ink body text |
+| `TEXT_EMPHASIS` | `#A88500` | Menu emphasis (deep lemon gold) |
+| `ACCENT_LEMON` | `#FFD600` | Brand lemon — borders, highlights, logo |
+| `ACCENT_LIME` | `#7CB518` | Secondary accent |
 | `SELECTION_ACTIVE` | `#61FF12` | List selection (signal green) |
 
 Principles:
 
-- Lemon/citrus is the *single* dominant accent; use sparingly for impact
-- Citrus must never read as legendary gold (`G ≥ R`, `B` low) — tests enforce
-- Deep warm backgrounds carry the UI; citrus never becomes a background color
+- **Light surfaces, dark ink**: the UI stays bright like the world it overlays
+- Lemon is a *frame*, not a flood — borders/highlights/icons only, never text
+  or panel fills
+- Lemon must never read as legendary gold (quality colors stay gold-shaped)
+- Tooltips invert to dark for hierarchy
 - Do not mix with cold blues for branding (reserved for item-quality semantics)
 
 ## 4. Typography

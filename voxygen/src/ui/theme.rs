@@ -1,8 +1,11 @@
-//! Warm Craft Fantasy theme tokens (palette v1).
+//! Lemon Fresh theme tokens (palette v2 — light theme).
 //!
 //! Single source for brand/chrome colors shared by Conrod HUD and Iced menus.
 //! Semantic combat/quality/chat colors stay in `hud` (frozen). See
-//! `docs/visual-design-warm-craft-fantasy.md`.
+//! `docs/visual-design-lemon-fresh.md`.
+//!
+//! NOTE: token values below are still v1 (dark Warm Craft Fantasy); migrate
+//! to v2 light values per the design doc.
 
 /// sRGB 0..=1 channel storage (not premultiplied). Palette **v1** frozen.
 pub mod brand {
