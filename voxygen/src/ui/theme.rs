@@ -10,14 +10,14 @@
 /// sRGB 0..=1 channel storage (not premultiplied). Palette **v2** (Lemon
 /// Fresh).
 pub mod brand {
-    /// Warm lemon-white panel/menu background (`#FDF6E3`).
-    pub const PANEL_BG: [f32; 4] = [0.992, 0.965, 0.890, 1.0];
+    /// Warm cream panel/menu background (`#FBF1DA`).
+    pub const PANEL_BG: [f32; 4] = [0.984, 0.945, 0.855, 1.0];
     /// Alias of [`PANEL_BG`]; do not fork a second menu background value.
     pub const MENU_BG: [f32; 4] = PANEL_BG;
-    /// Panel inner fill — warm cream, never pure white (`#F9F2DF`).
-    pub const PANEL_FILL: [f32; 4] = [0.976, 0.949, 0.875, 1.0];
-    /// Alternate panel background — soft warm yellow (`#F2EAD3`).
-    pub const PANEL_BG_ALT: [f32; 4] = [0.949, 0.918, 0.827, 1.0];
+    /// Panel inner fill — warm cream, never pure white (`#F8EED5`).
+    pub const PANEL_FILL: [f32; 4] = [0.973, 0.933, 0.835, 1.0];
+    /// Alternate panel background — soft warm yellow (`#F1E4C4`).
+    pub const PANEL_BG_ALT: [f32; 4] = [0.945, 0.894, 0.769, 1.0];
 
     /// Amber borders / dividers (`#D8A500`).
     pub const FRAME: [f32; 4] = [0.847, 0.647, 0.0, 1.0];
