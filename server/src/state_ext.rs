@@ -71,6 +71,7 @@ pub trait StateExt {
         ori: comp::Ori,
         vel: comp::Vel,
         item: comp::PickupItem,
+        source: Option<common::uid::Uid>,
     ) -> Option<EcsEntity>;
     fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
         &mut self,
@@ -281,6 +282,7 @@ impl StateExt for State {
         ori: comp::Ori,
         vel: comp::Vel,
         world_item: comp::PickupItem,
+        source: Option<common::uid::Uid>,
     ) -> Option<EcsEntity> {
         // Attempt merging with any nearby entities if possible
         {
@@ -341,6 +343,7 @@ impl StateExt for State {
                     // Delete the item drop after 5 minutes
                     timeout: Duration::from_secs(300),
                 })
+                .with(comp::grudge::ItemSource(source))
                 .maybe_with(light_emitter)
                 .build(),
         )

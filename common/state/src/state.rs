@@ -306,6 +306,8 @@ impl State {
         ecs.register::<comp::Beam>();
         ecs.register::<comp::Arcing>();
         ecs.register::<comp::Pool>();
+        ecs.register::<comp::grudge::ItemSource>();
+        ecs.register::<comp::grudge::LootGrudge>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Stance>();

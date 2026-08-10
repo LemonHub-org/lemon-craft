@@ -2246,9 +2246,20 @@ impl AgentData<'_> {
     pub fn is_enemy(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
         let other_alignment = read_data.alignments.get(entity);
 
+        // A player who stole this NPC's loot is an enemy until they return it
+        // or die (loot grudge).
+        let grudged = read_data.grudges.get(*self.entity).is_some_and(|grudge| {
+            read_data
+                .uids
+                .get(entity)
+                .copied()
+                .is_some_and(|uid| grudge.0.iter().any(|entry| entry.thief == uid))
+        });
+
         (entity != *self.entity)
             && !self.passive_towards(entity, read_data)
-            && (are_our_owners_hostile(self.alignment, other_alignment, read_data)
+            && (grudged
+                || are_our_owners_hostile(self.alignment, other_alignment, read_data)
                 || (is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)
                     || (is_villager(self.alignment) && is_dressed_as_witch(entity, read_data))
                     || (is_villager(self.alignment) && is_dressed_as_pirate(entity, read_data))))

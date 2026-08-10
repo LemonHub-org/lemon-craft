@@ -7,6 +7,10 @@ use specs::{
 use tracing::{debug, error, warn};
 use vek::*;
 
+/// How close a player must be to an NPC when dropping loot for it to count
+/// as a return (satisfying a loot grudge).
+const RETURN_RANGE_SQR: f32 = 5.0 * 5.0;
+
 use common::{
     comp::{
         self, PickupItem,
@@ -109,9 +113,11 @@ pub struct InventoryManipData<'a> {
     stats: ReadStorage<'a, comp::Stats>,
     clients: ReadStorage<'a, Client>,
     orientations: ReadStorage<'a, comp::Ori>,
-    agents: ReadStorage<'a, comp::Agent>,
+    agents: WriteStorage<'a, comp::Agent>,
     pets: ReadStorage<'a, comp::Pet>,
     masses: ReadStorage<'a, comp::Mass>,
+    item_sources: ReadStorage<'a, comp::grudge::ItemSource>,
+    grudges: WriteStorage<'a, comp::grudge::LootGrudge>,
     #[cfg(feature = "worldgen")]
     rtsim_actors: ReadStorage<'a, common::rtsim::ActorId>,
 }
@@ -210,6 +216,9 @@ impl ServerEvent for InventoryManipEvent {
                                                               since we just successfully removed \
                                                               its PickupItem component.";
 
+                    // Remember what was stolen in case this drop belongs to a
+                    // living NPC (loot grudge retaliation).
+                    let stolen_item = item.item().item_definition_id().to_owned();
                     let (item, reinsert_item) = item.pick_up();
 
                     let mut item_msg = item.frontend_item(&data.ability_map, &data.msm);
@@ -283,6 +292,45 @@ impl ServerEvent for InventoryManipEvent {
                                     .expect(ITEM_ENTITY_EXPECT_MESSAGE);
                             } else {
                                 emitters.emit(DeleteEvent(item_entity));
+                            }
+
+                            // Loot grudge: if this drop belonged to a living NPC, that NPC now
+                            // hates the picker until the item is returned (dropped near the NPC)
+                            // or the picker dies.
+                            if let Some(source_uid) = data
+                                .item_sources
+                                .get(item_entity)
+                                .and_then(|source| source.0)
+                                && let Some(npc_entity) = data.id_maps.uid_entity(source_uid)
+                                && data.entities.is_alive(npc_entity)
+                                && data.agents.get(npc_entity).is_some()
+                            {
+                                match data.grudges.entry(npc_entity) {
+                                    Ok(entry) => {
+                                        entry
+                                            .or_insert_with(comp::grudge::LootGrudge::default)
+                                            .0
+                                            .push(comp::grudge::LootGrudgeEntry {
+                                                thief: *uid,
+                                                item: stolen_item.clone(),
+                                            });
+                                    },
+                                    Err(_) => {
+                                        debug!("Failed to record loot grudge for entity");
+                                    },
+                                }
+
+                                // Direct the NPC at the thief with full aggro.
+                                if let Some(agent) = data.agents.get_mut(npc_entity) {
+                                    agent.target = Some(comp::agent::Target::new(
+                                        entity,
+                                        true,
+                                        data.program_time.0,
+                                        true,
+                                        data.positions.get(entity).map(|p| p.0),
+                                    ));
+                                    agent.awareness.set_maximally_aware();
+                                }
                             }
 
                             if let Some(group_id) = data.groups.get(entity) {
@@ -477,6 +525,7 @@ impl ServerEvent for InventoryManipEvent {
                             vel: comp::Vel(Vec3::zero()),
                             ori: data.orientations.get(entity).copied().unwrap_or_default(),
                             item: PickupItem::new(item, *data.program_time, true),
+                            source: None,
                         });
                     }
                 },
@@ -515,6 +564,7 @@ impl ServerEvent for InventoryManipEvent {
                                                 .copied()
                                                 .unwrap_or_default(),
                                             PickupItem::new(item, *data.program_time, true),
+                                            *uid,
                                         )
                                     }));
                                 }
@@ -560,6 +610,7 @@ impl ServerEvent for InventoryManipEvent {
                                                         *data.program_time,
                                                         true,
                                                     ),
+                                                    *uid,
                                                 ));
                                             }
                                         }
@@ -571,6 +622,7 @@ impl ServerEvent for InventoryManipEvent {
                                         ..
                                     } => {
                                         const MAX_PETS: usize = 3;
+
                                         let reinsert = if let Some(pos) = data.positions.get(entity)
                                         {
                                             if (&data.alignments, &data.agents, data.pets.mask())
@@ -673,6 +725,7 @@ impl ServerEvent for InventoryManipEvent {
                                                 .copied()
                                                 .unwrap_or_default(),
                                             PickupItem::new(item, *data.program_time, true),
+                                            *uid,
                                         )
                                     }));
                                 }
@@ -782,6 +835,7 @@ impl ServerEvent for InventoryManipEvent {
                                         *pos,
                                         data.orientations.get(entity).copied().unwrap_or_default(),
                                         PickupItem::new(item, *data.program_time, true),
+                                        *uid,
                                     )
                                 },
                             ));
@@ -840,6 +894,7 @@ impl ServerEvent for InventoryManipEvent {
                             *pos,
                             data.orientations.get(entity).copied().unwrap_or_default(),
                             PickupItem::new(item, *data.program_time, true),
+                            *uid,
                         ));
                     }
                     if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
@@ -864,6 +919,7 @@ impl ServerEvent for InventoryManipEvent {
                             *pos,
                             data.orientations.get(entity).copied().unwrap_or_default(),
                             PickupItem::new(item, *data.program_time, true),
+                            *uid,
                         ));
                     }
                     if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
@@ -1061,6 +1117,7 @@ impl ServerEvent for InventoryManipEvent {
                                     *pos,
                                     data.orientations.get(entity).copied().unwrap_or_default(),
                                     item,
+                                    *uid,
                                 ));
                             }
                         }
@@ -1094,17 +1151,54 @@ impl ServerEvent for InventoryManipEvent {
         }
 
         // Drop items, Debug items should simply disappear when dropped
-        for (pos, ori, mut item) in dropped_items
+        for (pos, ori, mut item, dropper_uid) in dropped_items
             .into_iter()
-            .filter(|(_, _, i)| !matches!(i.item().quality(), item::Quality::Debug))
+            .filter(|(_, _, i, _)| !matches!(i.item().quality(), item::Quality::Debug))
         {
             item.remove_debug_items();
+
+            // Returning loot: if a living NPC nearby holds a grudge against
+            // this player for this item, the grudge is satisfied.
+            let player_uid = dropper_uid;
+            let returned_id = item.item().item_definition_id().to_owned();
+            let player_pos = data
+                .id_maps
+                .uid_entity(player_uid)
+                .and_then(|e| data.positions.get(e))
+                .map(|p| p.0);
+            let mut clear_npcs = Vec::new();
+            for (npc, grudge, npc_pos) in (&*data.entities, &data.grudges, &data.positions).join() {
+                let in_range =
+                    player_pos.is_some_and(|p| npc_pos.0.distance_squared(p) < RETURN_RANGE_SQR);
+                if in_range
+                    && grudge
+                        .0
+                        .iter()
+                        .any(|e| e.thief == player_uid && e.item == returned_id)
+                {
+                    clear_npcs.push(npc);
+                }
+            }
+            for npc in clear_npcs {
+                if let Some(mut grudge) = data.grudges.get_mut(npc) {
+                    grudge
+                        .0
+                        .retain(|e| !(e.thief == player_uid && e.item == returned_id));
+                    if grudge.0.is_empty() {
+                        data.grudges.remove(npc);
+                    }
+                }
+                if let Some(agent) = data.agents.get_mut(npc) {
+                    agent.target = None;
+                }
+            }
 
             emitters.emit(CreateItemDropEvent {
                 pos,
                 vel: comp::Vel::default(),
                 ori,
                 item,
+                source: None,
             })
         }
     }

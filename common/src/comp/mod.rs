@@ -16,6 +16,7 @@ mod energy;
 pub mod fluid_dynamics;
 pub mod gizmos;
 pub mod group;
+pub mod grudge;
 mod hardcore;
 mod health;
 mod inputs;
@@ -76,6 +77,7 @@ pub use self::{
     fluid_dynamics::Fluid,
     gizmos::GizmoSubscriber,
     group::Group,
+    grudge::{ItemSource, LootGrudge},
     hardcore::Hardcore,
     inputs::CanBuild,
     inventory::{

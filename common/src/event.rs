@@ -203,6 +203,8 @@ pub struct CreateItemDropEvent {
     pub vel: Vel,
     pub ori: Ori,
     pub item: comp::PickupItem,
+    /// Uid of the NPC this drop came from, if any (loot-grudge retaliation).
+    pub source: Option<crate::uid::Uid>,
 }
 
 pub struct CreateObjectEvent {
