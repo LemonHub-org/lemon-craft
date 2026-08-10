@@ -7,6 +7,10 @@
         language_identifier: "zh-Hans",
     ),
     fonts: {
+        "universal": Font (
+            asset_key: "voxygen.font.AlibabaPuHuiTi-Bold",
+            scale_ratio: 1.0,
+        ),
         "alkhemi": Font (
             asset_key: "voxygen.font.AlibabaPuHuiTi-Bold",
             scale_ratio: 1.0,
