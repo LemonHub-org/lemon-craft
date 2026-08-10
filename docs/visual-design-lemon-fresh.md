@@ -19,9 +19,9 @@ voxel world (cool skies, green fields), not dim it:
 
 | Token | Value | Hex | Usage |
 |---|---|---|---|
-| `PANEL_BG` | `[0.992, 0.965, 0.890]` | `#FDF6E3` | Panel/menu background (alias `MENU_BG`) |
-| `PANEL_FILL` | `[1.0, 0.992, 0.949]` | `#FFFDF2` | Panel inner fill |
-| `PANEL_BG_ALT` | `[0.949, 0.918, 0.827]` | `#F2EAD3` | Alternate panel background |
+| `PANEL_BG` | `[0.984, 0.945, 0.855]` | `#FBF1DA` | Panel/menu background (alias `MENU_BG`) |
+| `PANEL_FILL` | `[0.973, 0.933, 0.835]` | `#F8EED5` | Panel inner fill |
+| `PANEL_BG_ALT` | `[0.945, 0.894, 0.769]` | `#F1E4C4` | Alternate panel background |
 | `FRAME` | `[0.847, 0.647, 0.0]` | `#D8A500` | Borders, dividers (amber) |
 | `UI_MAIN` | `[0.925, 0.831, 0.545]` | `#ECD48B` | Chrome multiply tint |
 | `UI_SUBTLE` | `[0.898, 0.870, 0.780]` | `#E5DEC7` | Subtle chrome |
@@ -41,7 +41,7 @@ voxel world (cool skies, green fields), not dim it:
 ## 3. Rules
 
 - **Light surfaces, dark ink**: text tokens are dark; panels are warm-white.
-  Body text contrast ≥ 7:1 (`#2B2B1F` on `#FDF6E3` ≈ 12:1).
+  Body text contrast ≥ 7:1 (`#2B2B1F` on `#FBF1DA` ≈ 12:1).
 - **Lemon is a frame, not a flood**: `ACCENT_LEMON` for borders, selection
   rings, icons, progress accents — never body text, never panel fills.
 - **Citrus ≠ legendary gold**: keep gold-shaped quality colors (`R > G > B`)
