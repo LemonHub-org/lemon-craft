@@ -11,6 +11,7 @@ use crate::{
         ItemTooltip, ItemTooltipManager, ItemTooltipable,
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
+        theme::{brand, to_conrod},
     },
     window::{LastInput, MenuInput},
 };
@@ -347,11 +348,11 @@ impl<'a> Widget for SlotGrid<'a> {
 
             // Highlight slots are provided by the loadout item (bag) that the mouse is over
             if mouseover_loadout_slots.contains(&i) {
-                slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
+                slot_widget = slot_widget.with_background_color(to_conrod(brand::PANEL_FILL));
             }
 
             if self.show_salvage && item.as_ref().is_some_and(|item| item.is_salvageable()) {
-                slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
+                slot_widget = slot_widget.with_background_color(to_conrod(brand::PANEL_FILL));
             }
 
             // Highlight in red the slots that are overflow

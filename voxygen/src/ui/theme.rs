@@ -14,8 +14,8 @@ pub mod brand {
     pub const PANEL_BG: [f32; 4] = [0.992, 0.965, 0.890, 1.0];
     /// Alias of [`PANEL_BG`]; do not fork a second menu background value.
     pub const MENU_BG: [f32; 4] = PANEL_BG;
-    /// Panel inner fill — lemon-tinted white (`#FFFDF2`).
-    pub const PANEL_FILL: [f32; 4] = [1.0, 0.992, 0.949, 1.0];
+    /// Panel inner fill — warm cream, never pure white (`#F9F2DF`).
+    pub const PANEL_FILL: [f32; 4] = [0.976, 0.949, 0.875, 1.0];
     /// Alternate panel background — soft warm yellow (`#F2EAD3`).
     pub const PANEL_BG_ALT: [f32; 4] = [0.949, 0.918, 0.827, 1.0];
 
