@@ -7,7 +7,10 @@ pub mod ping;
 pub mod register;
 pub mod terrain;
 
-use crate::{client::Client, sys::pets};
+use crate::{
+    client::Client,
+    sys::{auto_pickup, pets},
+};
 use common_ecs::{System, dispatch};
 use serde::de::DeserializeOwned;
 use specs::DispatcherBuilder;
@@ -15,6 +18,7 @@ use specs::DispatcherBuilder;
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     //run ping after general, as its super fast anyway. also don't get duplicate
     // disconnect then.
+    dispatch::<auto_pickup::Sys>(dispatch_builder, &[]);
     dispatch::<gizmos::Sys>(dispatch_builder, &[]);
     dispatch::<character_screen::Sys>(dispatch_builder, &[]);
     dispatch::<general::Sys>(dispatch_builder, &[]);

@@ -1,4 +1,5 @@
 pub mod agent;
+pub mod auto_pickup;
 pub mod chunk_send;
 pub mod chunk_serialize;
 pub mod entity_sync;
