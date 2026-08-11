@@ -77,7 +77,7 @@ pub use self::{
     fluid_dynamics::Fluid,
     gizmos::GizmoSubscriber,
     group::Group,
-    grudge::{ItemSource, LootGrudge},
+    grudge::ItemSource,
     hardcore::Hardcore,
     inputs::CanBuild,
     inventory::{

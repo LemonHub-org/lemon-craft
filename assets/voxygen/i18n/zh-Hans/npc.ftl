@@ -555,3 +555,9 @@ npc-speech-pirate_raid =
     .a1 = 伙计，快来掠夺 { $site } 吧。
     .a2 = 我们要去掠夺 { $site }。
 npc-signs-keep_out = 禁止入内！
+
+npc-speech-loot-warning =
+    .a0 = 那是我的！别碰！
+    .a1 = 嘿！别动我的东西！
+    .a2 = 给我放回去，否则有你好看！
+    .a3 = 你会后悔拿了那东西的！

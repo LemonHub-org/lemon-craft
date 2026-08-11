@@ -7,10 +7,6 @@ use specs::{
 use tracing::{debug, error, warn};
 use vek::*;
 
-/// How close a player must be to an NPC when dropping loot for it to count
-/// as a return (satisfying a loot grudge).
-const RETURN_RANGE_SQR: f32 = 5.0 * 5.0;
-
 use common::{
     comp::{
         self, PickupItem,
@@ -20,9 +16,9 @@ use common::{
     },
     consts::MAX_PICKUP_RANGE,
     event::{
-        BuffEvent, ChangeBodyEvent, ChangeStanceEvent, CreateItemDropEvent, CreateObjectEvent,
-        DeleteEvent, EmitExt, HealthChangeEvent, InventoryManipEvent, PoiseChangeEvent,
-        TamePetEvent,
+        BuffEvent, ChangeBodyEvent, ChangeStanceEvent, ChatEvent, CreateItemDropEvent,
+        CreateObjectEvent, DeleteEvent, EmitExt, HealthChangeEvent, InventoryManipEvent,
+        PoiseChangeEvent, TamePetEvent,
     },
     event_emitters, match_some,
     mounting::VolumePos,
@@ -74,6 +70,7 @@ event_emitters! {
         poise_change: PoiseChangeEvent,
         buff: BuffEvent,
         change_body: ChangeBodyEvent,
+        chat: ChatEvent,
         outcome: Outcome,
         stance: ChangeStanceEvent,
     }
@@ -117,7 +114,6 @@ pub struct InventoryManipData<'a> {
     pets: ReadStorage<'a, comp::Pet>,
     masses: ReadStorage<'a, comp::Mass>,
     item_sources: ReadStorage<'a, comp::grudge::ItemSource>,
-    grudges: WriteStorage<'a, comp::grudge::LootGrudge>,
     #[cfg(feature = "worldgen")]
     rtsim_actors: ReadStorage<'a, common::rtsim::ActorId>,
 }
@@ -216,9 +212,6 @@ impl ServerEvent for InventoryManipEvent {
                                                               since we just successfully removed \
                                                               its PickupItem component.";
 
-                    // Remember what was stolen in case this drop belongs to a
-                    // living NPC (loot grudge retaliation).
-                    let stolen_item = item.item().item_definition_id().to_owned();
                     let (item, reinsert_item) = item.pick_up();
 
                     let mut item_msg = item.frontend_item(&data.ability_map, &data.msm);
@@ -294,9 +287,8 @@ impl ServerEvent for InventoryManipEvent {
                                 emitters.emit(DeleteEvent(item_entity));
                             }
 
-                            // Loot grudge: if this drop belonged to a living NPC, that NPC now
-                            // hates the picker until the item is returned (dropped near the NPC)
-                            // or the picker dies.
+                            // Loot tolerance: if this drop belonged to a living NPC, the NPC
+                            // verbally warns the picker — no grudge, no attack.
                             if let Some(source_uid) = data
                                 .item_sources
                                 .get(item_entity)
@@ -305,32 +297,13 @@ impl ServerEvent for InventoryManipEvent {
                                 && data.entities.is_alive(npc_entity)
                                 && data.agents.get(npc_entity).is_some()
                             {
-                                match data.grudges.entry(npc_entity) {
-                                    Ok(entry) => {
-                                        entry
-                                            .or_insert_with(comp::grudge::LootGrudge::default)
-                                            .0
-                                            .push(comp::grudge::LootGrudgeEntry {
-                                                thief: *uid,
-                                                item: stolen_item.clone(),
-                                            });
-                                    },
-                                    Err(_) => {
-                                        debug!("Failed to record loot grudge for entity");
-                                    },
-                                }
-
-                                // Direct the NPC at the thief with full aggro.
-                                if let Some(agent) = data.agents.get_mut(npc_entity) {
-                                    agent.target = Some(comp::agent::Target::new(
-                                        entity,
-                                        true,
-                                        data.program_time.0,
-                                        true,
-                                        data.positions.get(entity).map(|p| p.0),
-                                    ));
-                                    agent.awareness.set_maximally_aware();
-                                }
+                                emitters.emit(ChatEvent {
+                                    msg: comp::UnresolvedChatMsg::npc(
+                                        source_uid,
+                                        common::comp::Content::localized("npc-speech-loot-warning"),
+                                    ),
+                                    from_client: false,
+                                });
                             }
 
                             if let Some(group_id) = data.groups.get(entity) {
@@ -1151,47 +1124,11 @@ impl ServerEvent for InventoryManipEvent {
         }
 
         // Drop items, Debug items should simply disappear when dropped
-        for (pos, ori, mut item, dropper_uid) in dropped_items
+        for (pos, ori, mut item, _dropper_uid) in dropped_items
             .into_iter()
             .filter(|(_, _, i, _)| !matches!(i.item().quality(), item::Quality::Debug))
         {
             item.remove_debug_items();
-
-            // Returning loot: if a living NPC nearby holds a grudge against
-            // this player for this item, the grudge is satisfied.
-            let player_uid = dropper_uid;
-            let returned_id = item.item().item_definition_id().to_owned();
-            let player_pos = data
-                .id_maps
-                .uid_entity(player_uid)
-                .and_then(|e| data.positions.get(e))
-                .map(|p| p.0);
-            let mut clear_npcs = Vec::new();
-            for (npc, grudge, npc_pos) in (&*data.entities, &data.grudges, &data.positions).join() {
-                let in_range =
-                    player_pos.is_some_and(|p| npc_pos.0.distance_squared(p) < RETURN_RANGE_SQR);
-                if in_range
-                    && grudge
-                        .0
-                        .iter()
-                        .any(|e| e.thief == player_uid && e.item == returned_id)
-                {
-                    clear_npcs.push(npc);
-                }
-            }
-            for npc in clear_npcs {
-                if let Some(mut grudge) = data.grudges.get_mut(npc) {
-                    grudge
-                        .0
-                        .retain(|e| !(e.thief == player_uid && e.item == returned_id));
-                    if grudge.0.is_empty() {
-                        data.grudges.remove(npc);
-                    }
-                }
-                if let Some(agent) = data.agents.get_mut(npc) {
-                    agent.target = None;
-                }
-            }
 
             emitters.emit(CreateItemDropEvent {
                 pos,

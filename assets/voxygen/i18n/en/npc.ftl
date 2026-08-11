@@ -602,3 +602,9 @@ npc-speech-pirate_raid =
 ## Signs
 
 npc-signs-keep_out =  Keep Out!
+
+npc-speech-loot-warning =
+    .a0 = That's mine! Hands off!
+    .a1 = Hey! Don't touch my stuff!
+    .a2 = Put that back, or else!
+    .a3 = You'll regret taking that!

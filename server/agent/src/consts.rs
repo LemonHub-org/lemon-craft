@@ -1,4 +1,6 @@
 pub const DAMAGE_MEMORY_DURATION: f64 = 0.25;
+/// Fraction of max health below which damage only earns a verbal warning.
+pub const LIGHT_DAMAGE_FRACTION: f32 = 0.05;
 pub const FLEE_DURATION: f32 = 3.0;
 pub const NPC_PICKUP_RANGE: f32 = 2.5;
 pub const MAX_PATROL_DIST: f32 = 50.0;

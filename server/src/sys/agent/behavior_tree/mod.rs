@@ -1,8 +1,8 @@
 use common::{
     comp::{
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, CharacterState,
-        ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos, PresenceKind,
-        UtteranceKind,
+        Content, ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos,
+        PresenceKind, UtteranceKind,
         agent::{
             AgentEvent, AwarenessState, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME, Target,
             TimerAction,
@@ -29,9 +29,9 @@ use self::interaction::{
 
 use super::{
     consts::{
-        DAMAGE_MEMORY_DURATION, FLEE_DURATION, HEALING_ITEM_THRESHOLD, MAX_PATROL_DIST,
-        MAX_STAY_DISTANCE, NORMAL_FLEE_DIR_DIST, NPC_PICKUP_RANGE, RETARGETING_THRESHOLD_SECONDS,
-        STD_AWARENESS_DECAY_RATE,
+        DAMAGE_MEMORY_DURATION, FLEE_DURATION, HEALING_ITEM_THRESHOLD, LIGHT_DAMAGE_FRACTION,
+        MAX_PATROL_DIST, MAX_STAY_DISTANCE, NORMAL_FLEE_DIR_DIST, NPC_PICKUP_RANGE,
+        RETARGETING_THRESHOLD_SECONDS, STD_AWARENESS_DECAY_RATE,
     },
     data::{AgentData, ReadData, TargetData},
     util::{get_entity_by_id, is_dead, is_dead_or_invulnerable, is_invulnerable, stop_pursuing},
@@ -285,47 +285,67 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                 if is_dead_or_invulnerable(attacker, bdata.read_data) {
                     bdata.agent.target = None;
                 } else {
-                    if bdata.agent.target.is_none() {
-                        bdata
-                            .controller
-                            .push_event(ControlEvent::Utterance(UtteranceKind::Angry));
-                    }
+                    // Tolerance: light damage (below 5% of max health) only
+                    // earns a verbal warning — the NPC does not fight back.
+                    let light_damage =
+                        -health.last_change.amount < LIGHT_DAMAGE_FRACTION * health.maximum();
 
-                    bdata.agent.awareness.change_by(1.0);
+                    if light_damage {
+                        if bdata.agent.target.is_none() {
+                            bdata
+                                .controller
+                                .push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+                            bdata.agent_data.chat_npc_if_allowed_to_speak(
+                                Content::localized("npc-speech-menacing"),
+                                bdata.agent,
+                                bdata.emitters,
+                            );
+                        }
+                        // Slight alertness, but no attack target.
+                        bdata.agent.awareness.change_by(0.5);
+                    } else {
+                        if bdata.agent.target.is_none() {
+                            bdata
+                                .controller
+                                .push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+                        }
 
-                    // Determine whether the new target should be a priority
-                    // over the old one (i.e: because it's either close or
-                    // because they attacked us).
-                    if bdata.agent.target.is_none_or(|target| {
-                        bdata.agent_data.is_more_dangerous_than_target(
-                            attacker,
-                            target,
-                            bdata.read_data,
-                        )
-                    }) {
-                        bdata.agent.target = Some(Target {
-                            target: attacker,
-                            hostile: true,
-                            selected_at: bdata.read_data.time.0,
-                            aggro_on: true,
-                            last_known_pos: bdata
-                                .read_data
-                                .positions
-                                .get(attacker)
-                                .map(|pos| pos.0),
-                        });
-                    }
+                        bdata.agent.awareness.change_by(1.0);
 
-                    // Remember this attack if we're an RtSim entity
-                    /*
-                    if let Some(attacker_stats) =
-                        bdata.rtsim_actor.and(bdata.read_data.stats.get(attacker))
-                    {
-                        bdata
-                            .agent
-                            .add_fight_to_memory(&attacker_stats.name, bdata.read_data.time.0);
+                        // Determine whether the new target should be a priority
+                        // over the old one (i.e: because it's either close or
+                        // because they attacked us).
+                        if bdata.agent.target.is_none_or(|target| {
+                            bdata.agent_data.is_more_dangerous_than_target(
+                                attacker,
+                                target,
+                                bdata.read_data,
+                            )
+                        }) {
+                            bdata.agent.target = Some(Target {
+                                target: attacker,
+                                hostile: true,
+                                selected_at: bdata.read_data.time.0,
+                                aggro_on: true,
+                                last_known_pos: bdata
+                                    .read_data
+                                    .positions
+                                    .get(attacker)
+                                    .map(|pos| pos.0),
+                            });
+                        }
+
+                        // Remember this attack if we're an RtSim entity
+                        /*
+                        if let Some(attacker_stats) =
+                            bdata.rtsim_actor.and(bdata.read_data.stats.get(attacker))
+                        {
+                            bdata
+                                .agent
+                                .add_fight_to_memory(&attacker_stats.name, bdata.read_data.time.0);
+                        }
+                        */
                     }
-                    */
                 }
             }
         },

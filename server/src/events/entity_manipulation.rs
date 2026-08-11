@@ -561,7 +561,6 @@ pub struct DestroyEventData<'a> {
     #[cfg(feature = "worldgen")]
     rtsim_actors: ReadStorage<'a, rtsim::ActorId>,
     masses: ReadStorage<'a, comp::Mass>,
-    grudges: WriteStorage<'a, comp::grudge::LootGrudge>,
     event_buses: DestroyEvents<'a>,
     buffs: ReadStorage<'a, comp::Buffs>,
     orientations: ReadStorage<'a, comp::Ori>,
@@ -1224,27 +1223,6 @@ impl ServerEvent for DestroyEvent {
             };
 
             should_delete &= if data.clients.contains(ev.entity) {
-                // A dead player satisfies all loot grudges: NPCs stop hating
-                // them, and won't re-aggro on respawn.
-                if let Some(player_uid) = data.uids.get(ev.entity).copied() {
-                    let mut clear_npcs = Vec::new();
-                    for (npc, grudge) in (&*data.entities, &data.grudges).join() {
-                        if grudge.0.iter().any(|e| e.thief == player_uid) {
-                            clear_npcs.push(npc);
-                        }
-                    }
-                    for npc in clear_npcs {
-                        if let Some(mut grudge) = data.grudges.get_mut(npc) {
-                            grudge.0.retain(|e| e.thief != player_uid);
-                            if grudge.0.is_empty() {
-                                data.grudges.remove(npc);
-                            }
-                        }
-                        if let Some(agent) = data.agents.get_mut(npc) {
-                            agent.target = None;
-                        }
-                    }
-                }
                 if let Some(vel) = data.velocities.get_mut(ev.entity) {
                     vel.0 = Vec3::zero();
                 }
