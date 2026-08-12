@@ -19,10 +19,13 @@ use std::{
     },
     time::Duration,
 };
+#[cfg(feature = "networking")]
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net,
     net::tcp::{OwnedReadHalf, OwnedWriteHalf},
+};
+use tokio::{
     select,
     sync::{Mutex, mpsc, oneshot},
 };
@@ -30,6 +33,7 @@ use tracing::{error, info, trace, warn};
 
 #[derive(Debug)]
 pub(crate) enum Protocols {
+    #[cfg(feature = "networking")]
     Tcp((TcpSendProtocol<TcpDrain>, TcpRecvProtocol<TcpSink>)),
     Mpsc((MpscSendProtocol<MpscDrain>, MpscRecvProtocol<MpscSink>)),
     #[cfg(feature = "quic")]
@@ -38,6 +42,7 @@ pub(crate) enum Protocols {
 
 #[derive(Debug)]
 pub(crate) enum SendProtocols {
+    #[cfg(feature = "networking")]
     Tcp(TcpSendProtocol<TcpDrain>),
     Mpsc(MpscSendProtocol<MpscDrain>),
     #[cfg(feature = "quic")]
@@ -46,6 +51,7 @@ pub(crate) enum SendProtocols {
 
 #[derive(Debug)]
 pub(crate) enum RecvProtocols {
+    #[cfg(feature = "networking")]
     Tcp(TcpRecvProtocol<TcpSink>),
     Mpsc(MpscRecvProtocol<MpscSink>),
     #[cfg(feature = "quic")]
@@ -65,25 +71,34 @@ pub(crate) type C2cMpscConnect = (
 pub(crate) type C2sProtocol = (Protocols, ConnectAddr, Cid);
 
 fn anonymize_addr(addr: &SocketAddr) -> String {
-    use std::net::IpAddr;
-    match addr.ip() {
-        IpAddr::V4(ip) => {
-            let [o0, _, o2, _] = ip.octets();
-            format!("{o0}.xxx.{o2}.xxx:{}", addr.port())
-        },
-        IpAddr::V6(ip) => {
-            let [s0, s1, _, _, s4, s5, _, _] = ip.segments();
-            format!(
-                "[{s0:04x}:{s1:04x}:xxxx:xxxx:{s4:04x}:{s5:04x}:xxxx:xxxx]:{}",
-                addr.port()
-            )
-        },
+    #[cfg(feature = "networking")]
+    {
+        use std::net::IpAddr;
+        match addr.ip() {
+            IpAddr::V4(ip) => {
+                let [o0, _, o2, _] = ip.octets();
+                format!("{o0}.xxx.{o2}.xxx:{}", addr.port())
+            },
+            IpAddr::V6(ip) => {
+                let [s0, s1, _, _, s4, s5, _, _] = ip.segments();
+                format!(
+                    "[{s0:04x}:{s1:04x}:xxxx:xxxx:{s4:04x}:{s5:04x}:xxxx:xxxx]:{}",
+                    addr.port()
+                )
+            },
+        }
+    }
+    #[cfg(not(feature = "networking"))]
+    {
+        let _ = addr;
+        String::new()
     }
 }
 
 impl Protocols {
     const MPSC_CHANNEL_BOUND: usize = 1000;
 
+    #[cfg(feature = "networking")]
     pub(crate) async fn with_tcp_connect(
         addr: SocketAddr,
         metrics: ProtocolMetricCache,
@@ -102,6 +117,7 @@ impl Protocols {
         Ok(Self::new_tcp(stream, metrics))
     }
 
+    #[cfg(feature = "networking")]
     pub(crate) async fn with_tcp_listen(
         addr: SocketAddr,
         cids: Arc<AtomicU64>,
@@ -169,6 +185,7 @@ impl Protocols {
         Ok(())
     }
 
+    #[cfg(feature = "networking")]
     pub(crate) fn new_tcp(stream: net::TcpStream, metrics: ProtocolMetricCache) -> Self {
         let (r, w) = stream.into_split();
         let sp = TcpSendProtocol::new(TcpDrain { half: w }, metrics.clone());
@@ -397,6 +414,7 @@ impl Protocols {
 
     pub(crate) fn split(self) -> (SendProtocols, RecvProtocols) {
         match self {
+            #[cfg(feature = "networking")]
             Protocols::Tcp((s, r)) => (SendProtocols::Tcp(s), RecvProtocols::Tcp(r)),
             Protocols::Mpsc((s, r)) => (SendProtocols::Mpsc(s), RecvProtocols::Mpsc(r)),
             #[cfg(feature = "quic")]
@@ -416,6 +434,7 @@ impl network_protocol::InitProtocol for Protocols {
         secret: u128,
     ) -> Result<(Pid, Sid, u128), InitProtocolError<Self::CustomErr>> {
         match self {
+            #[cfg(feature = "networking")]
             Protocols::Tcp(p) => p.initialize(initializer, local_pid, secret).await,
             Protocols::Mpsc(p) => p.initialize(initializer, local_pid, secret).await,
             #[cfg(feature = "quic")]
@@ -430,6 +449,7 @@ impl network_protocol::SendProtocol for SendProtocols {
 
     fn notify_from_recv(&mut self, event: ProtocolEvent) {
         match self {
+            #[cfg(feature = "networking")]
             SendProtocols::Tcp(s) => s.notify_from_recv(event),
             SendProtocols::Mpsc(s) => s.notify_from_recv(event),
             #[cfg(feature = "quic")]
@@ -439,6 +459,7 @@ impl network_protocol::SendProtocol for SendProtocols {
 
     async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError<Self::CustomErr>> {
         match self {
+            #[cfg(feature = "networking")]
             SendProtocols::Tcp(s) => s.send(event).await,
             SendProtocols::Mpsc(s) => s.send(event).await,
             #[cfg(feature = "quic")]
@@ -452,6 +473,7 @@ impl network_protocol::SendProtocol for SendProtocols {
         dt: Duration,
     ) -> Result<Bandwidth, ProtocolError<Self::CustomErr>> {
         match self {
+            #[cfg(feature = "networking")]
             SendProtocols::Tcp(s) => s.flush(bandwidth, dt).await,
             SendProtocols::Mpsc(s) => s.flush(bandwidth, dt).await,
             #[cfg(feature = "quic")]
@@ -466,6 +488,7 @@ impl network_protocol::RecvProtocol for RecvProtocols {
 
     async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError<Self::CustomErr>> {
         match self {
+            #[cfg(feature = "networking")]
             RecvProtocols::Tcp(r) => r.recv().await,
             RecvProtocols::Mpsc(r) => r.recv().await,
             #[cfg(feature = "quic")]
@@ -493,26 +516,31 @@ pub enum QuicError {
 /// Error types for Protocols
 #[derive(Debug)]
 pub enum ProtocolsError {
+    #[cfg(feature = "networking")]
     Tcp(io::Error),
+    #[cfg(feature = "networking")]
     Udp(io::Error),
     #[cfg(feature = "quic")]
     Quic(QuicError),
     Mpsc(MpscError),
 }
 
-///////////////////////////////////////
-// TCP
+// /////////////////////////////////////
+// // TCP
+#[cfg(feature = "networking")]
 #[derive(Debug)]
 pub struct TcpDrain {
     half: OwnedWriteHalf,
 }
 
+#[cfg(feature = "networking")]
 #[derive(Debug)]
 pub struct TcpSink {
     half: OwnedReadHalf,
     buffer: BytesMut,
 }
 
+#[cfg(feature = "networking")]
 #[async_trait]
 impl UnreliableDrain for TcpDrain {
     type CustomErr = ProtocolsError;
@@ -526,6 +554,7 @@ impl UnreliableDrain for TcpDrain {
     }
 }
 
+#[cfg(feature = "networking")]
 #[async_trait]
 impl UnreliableSink for TcpSink {
     type CustomErr = ProtocolsError;

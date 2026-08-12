@@ -500,11 +500,18 @@ impl AudioFrontend {
     }
 
     pub fn get_cpu_usage(&mut self) -> f32 {
-        if let Some(inner) = self.inner.as_mut() {
-            inner.manager.backend_mut().pop_cpu_usage().unwrap_or(0.0)
-        } else {
-            0.0
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            if let Some(inner) = self.inner.as_mut() {
+                return inner.manager.backend_mut().pop_cpu_usage().unwrap_or(0.0);
+            }
         }
+        #[cfg(target_arch = "wasm32")]
+        {
+            // The wasm cpal backend exposes no CPU usage counter.
+            let _ = &mut self.inner;
+        }
+        0.0
     }
 
     /// Play a music file with the given tag. Pass in the length of the track in

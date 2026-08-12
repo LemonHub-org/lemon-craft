@@ -273,7 +273,10 @@ impl Window {
             ))
             .with_maximized(window.maximised);
 
-        #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+        #[cfg(all(
+            not(any(target_os = "windows", target_os = "macos")),
+            not(target_arch = "wasm32")
+        ))]
         {
             use winit::platform::wayland::WindowAttributesExtWayland;
             attributes = attributes.with_name(
@@ -881,21 +884,34 @@ impl Window {
                 }
             },
             WindowEvent::MouseWheel { delta, .. } if self.cursor_grabbed && self.focused => {
+                // Ctrl + scroll zooms the camera; plain scroll cycles the
+                // selected hotbar slot (up = previous, down = next).
                 const DIFFERENCE_FROM_DEVICE_EVENT_ON_X11: f32 = -15.0;
-                self.events.push(Event::Zoom({
-                    let y = match delta {
-                        winit::event::MouseScrollDelta::LineDelta(_x, y) => y,
-                        // TODO: Check to see if there is a better way to find the "line
-                        // height" than just hardcoding 16.0 pixels.  Alternately we could
-                        // get rid of this and have the user set zoom sensitivity, since
-                        // it's unlikely people would expect a configuration file to work
-                        // across operating systems.
-                        winit::event::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
-                    };
-                    y * (self.zoom_sensitivity as f32 / 100.0)
-                        * if self.zoom_inversion { -1.0 } else { 1.0 }
-                        * DIFFERENCE_FROM_DEVICE_EVENT_ON_X11
-                }))
+                let y = match delta {
+                    winit::event::MouseScrollDelta::LineDelta(_x, y) => y,
+                    // TODO: Check to see if there is a better way to find the "line
+                    // height" than just hardcoding 16.0 pixels.  Alternately we could
+                    // get rid of this and have the user set zoom sensitivity, since
+                    // it's unlikely people would expect a configuration file to work
+                    // across operating systems.
+                    winit::event::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
+                };
+                if self.modifiers.control_key() {
+                    self.events.push(Event::Zoom(
+                        y * (self.zoom_sensitivity as f32 / 100.0)
+                            * if self.zoom_inversion { -1.0 } else { 1.0 }
+                            * DIFFERENCE_FROM_DEVICE_EVENT_ON_X11,
+                    ));
+                } else {
+                    self.events.push(Event::InputUpdate(
+                        if y > 0.0 {
+                            GameInput::PreviousSlot
+                        } else {
+                            GameInput::NextSlot
+                        },
+                        true,
+                    ));
+                }
             },
             _ => {},
         }

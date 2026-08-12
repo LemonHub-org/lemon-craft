@@ -1,6 +1,7 @@
-use std::net::SocketAddr;
+#[cfg(feature = "quic")] use std::net::SocketAddr;
+#[cfg(feature = "quic")]
 use tokio::net::lookup_host;
-use tracing::trace;
+#[cfg(feature = "quic")] use tracing::trace;
 
 #[derive(Clone, Debug)]
 pub enum ConnectionArgs {
@@ -36,6 +37,7 @@ impl ConnectionArgs {
 /// Parse ip address or resolves hostname.
 /// Note: If you use an ipv6 address, the number after the last
 /// colon will be used as the port unless you use [] around the address.
+#[cfg(feature = "quic")]
 pub(crate) async fn resolve(
     address: &str,
     prefer_ipv6: bool,
@@ -60,6 +62,7 @@ pub(crate) async fn resolve(
     }
 }
 
+#[cfg(feature = "quic")]
 pub(crate) async fn try_connect<F>(
     network: &network::Network,
     address: &str,
@@ -92,6 +95,7 @@ where
     participant.unwrap_or_else(|| Err(Error::Other("No Ip Addr provided".to_string())))
 }
 
+#[cfg(feature = "quic")]
 fn sort_ipv6(s: impl Iterator<Item = SocketAddr>, prefer_ipv6: bool) -> Vec<SocketAddr> {
     let (mut first_addrs, mut second_addrs) =
         s.partition::<Vec<_>, _>(|a| a.is_ipv6() == prefer_ipv6);
@@ -99,6 +103,7 @@ fn sort_ipv6(s: impl Iterator<Item = SocketAddr>, prefer_ipv6: bool) -> Vec<Sock
 }
 
 #[cfg(test)]
+#[cfg(feature = "quic")]
 mod tests {
     use super::*;
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};

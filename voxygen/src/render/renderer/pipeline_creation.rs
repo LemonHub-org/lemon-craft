@@ -1,6 +1,8 @@
+#[cfg(feature = "shaderc")]
+use crate::render::renderer::compiler::ShaderCCompiler;
 use crate::render::{
     pipelines::rain_occlusion,
-    renderer::compiler::{ShaderCCompiler, ShaderStage, WgpuCompiler},
+    renderer::compiler::{ShaderStage, WgpuCompiler},
 };
 
 use super::{
@@ -313,6 +315,13 @@ impl ShaderModules {
             })
         };
 
+        #[cfg(not(feature = "shaderc"))]
+        let mut compiler: Box<dyn super::compiler::Compiler> = {
+            // The browser build has no shaderc; naga is the only compiler.
+            let _ = shaderc_opts;
+            Box::new(WgpuCompiler::new(fetch_include)?)
+        };
+        #[cfg(feature = "shaderc")]
         let mut compiler: Box<dyn super::compiler::Compiler> = if pipeline_modes.enable_naga {
             Box::new(WgpuCompiler::new(fetch_include)?)
         } else {

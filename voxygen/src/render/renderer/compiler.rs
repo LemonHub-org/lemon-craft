@@ -1,5 +1,5 @@
 use common_base::prof_span;
-use tracing::info;
+#[cfg(feature = "shaderc")] use tracing::info;
 
 use crate::render::RenderError;
 
@@ -17,6 +17,7 @@ impl From<ShaderStage> for wgpu::naga::ShaderStage {
     }
 }
 
+#[cfg(feature = "shaderc")]
 impl From<ShaderStage> for shaderc::ShaderKind {
     fn from(value: ShaderStage) -> Self {
         match value {
@@ -36,11 +37,13 @@ pub(super) trait Compiler {
     ) -> Result<wgpu::ShaderModule, RenderError>;
 }
 
+#[cfg(feature = "shaderc")]
 pub(super) struct ShaderCCompiler {
     compiler: shaderc::Compiler,
     options: shaderc::CompileOptions<'static>,
 }
 
+#[cfg(feature = "shaderc")]
 impl ShaderCCompiler {
     pub(super) fn new(
         optimize: bool,
@@ -69,6 +72,7 @@ impl ShaderCCompiler {
     }
 }
 
+#[cfg(feature = "shaderc")]
 impl Compiler for ShaderCCompiler {
     fn create_shader_module(
         &mut self,
@@ -171,12 +175,22 @@ impl Compiler for WgpuCompiler {
         #[expect(unsafe_code)]
         let shader = unsafe { device.create_shader_module_trusted(descriptor, runtimechecks) };
 
-        let rt = tokio::runtime::Runtime::new().unwrap();
-
-        if let Some(error) = rt.block_on(device.pop_error_scope()) {
-            Err(RenderError::ShaderWgpuError(label.to_owned(), error))
-        } else {
-            Ok(shader)
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            if let Some(error) = rt.block_on(device.pop_error_scope()) {
+                return Err(RenderError::ShaderWgpuError(
+                    label.to_owned(),
+                    error.to_string(),
+                ));
+            }
         }
+        #[cfg(target_arch = "wasm32")]
+        {
+            // No blocking runtime on the browser main thread; errors are
+            // reported through the validation error scope on the next frame.
+            let _ = device.pop_error_scope();
+        }
+        Ok(shader)
     }
 }

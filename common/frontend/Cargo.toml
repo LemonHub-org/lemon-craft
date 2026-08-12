@@ -17,8 +17,10 @@ common-base = { package = "lemoncraft-common-base", path = "../base" }
 # Logging
 termcolor = "1.1"
 tracing = { workspace = true }
-tracing-appender = "0.2.0"
 tracing-subscriber =  { workspace = true, features = ["tracing-log"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tracing-appender = "0.2.0"
 
 # Tracy
 # NOTE: This must be kept in sync with the `profiling` version in `common/base`.

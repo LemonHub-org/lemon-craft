@@ -99,7 +99,10 @@ impl ClientInit {
                 {
                     Ok(client) => {
                         let _ = tx.send(Msg::Done(Ok(client)));
+                        #[cfg(not(target_arch = "wasm32"))]
                         tokio::task::block_in_place(move || drop(runtime2));
+                        #[cfg(target_arch = "wasm32")]
+                        drop(runtime2);
                         return;
                     },
                     Err(ClientError::NetworkErr(NetworkError::ConnectFailed(
@@ -125,7 +128,10 @@ impl ClientInit {
             let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::ServerNotFound))));
 
             // Safe drop runtime
+            #[cfg(not(target_arch = "wasm32"))]
             tokio::task::block_in_place(move || drop(runtime2));
+            #[cfg(target_arch = "wasm32")]
+            drop(runtime2);
         });
 
         ClientInit {

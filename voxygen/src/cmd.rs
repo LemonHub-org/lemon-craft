@@ -771,14 +771,24 @@ fn handle_wiki(
         ));
     };
 
-    open::that_detached(url)
-        .map(|_| Some(Content::localized("command-wiki-success")))
-        .map_err(|e| {
-            Content::localized_with_args("command-wiki-fail", [(
-                "error",
-                LocalizationArg::from(e.to_string()),
-            )])
-        })
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        open::that_detached(url)
+            .map(|_| Some(Content::localized("command-wiki-success")))
+            .map_err(|e| {
+                Content::localized_with_args("command-wiki-fail", [(
+                    "error",
+                    LocalizationArg::from(e.to_string()),
+                )])
+            })
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = url;
+        Err(Content::Plain(
+            "Opening external links is not supported in the browser build.".to_string(),
+        ))
+    }
 }
 
 /// Handles [`ClientChatCommand::ResetTutorial`]

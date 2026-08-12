@@ -1,14 +1,30 @@
-#[cfg(not(feature = "tracy"))] use std::fs;
+#[cfg(all(not(feature = "tracy"), not(target_arch = "wasm32")))]
+use std::fs;
 use std::path::Path;
 
 use termcolor::{ColorChoice, StandardStream};
 use tracing::info;
+#[cfg(not(target_arch = "wasm32"))]
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
     EnvFilter, filter::LevelFilter, fmt::writer::MakeWriter, prelude::*, registry,
 };
 
 const RUST_LOG_ENV: &str = "RUST_LOG";
+
+// The browser build has no log files or background flusher threads, so guards
+// are a no-op.
+#[cfg(target_arch = "wasm32")]
+struct NoopGuard;
+#[cfg(target_arch = "wasm32")]
+impl Drop for NoopGuard {
+    fn drop(&mut self) {}
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+type Guard = WorkerGuard;
+#[cfg(target_arch = "wasm32")]
+type Guard = NoopGuard;
 
 /// Initialise tracing and logging for the logs_path.
 ///
@@ -38,15 +54,15 @@ pub fn init<W2>(
     terminal: &'static W2,
 ) -> Vec<impl Drop + use<W2>>
 where
-    W2: MakeWriter<'static> + 'static,
+    W2: MakeWriter<'static> + 'static + Sync,
     <W2 as MakeWriter<'static>>::Writer: 'static + Send + Sync,
 {
     // To hold the guards that we create, they will cause the logs to be
     // flushed when they're dropped.
     #[cfg(not(feature = "tracy"))]
-    let mut guards: Vec<WorkerGuard> = Vec::new();
+    let mut guards: Vec<Guard> = Vec::new();
     #[cfg(feature = "tracy")]
-    let guards: Vec<WorkerGuard> = Vec::new();
+    let guards: Vec<Guard> = Vec::new();
 
     // We will do lower logging than the default (INFO) by INCLUSION. This
     // means that if you need lower level logging for a specific module, then
@@ -109,11 +125,11 @@ where
     let filter = filter; // mutation is done
 
     let registry = registry();
-    #[cfg(not(feature = "tracy"))]
+    #[cfg(all(not(feature = "tracy"), not(target_arch = "wasm32")))]
     let mut file_setup = false;
-    #[cfg(feature = "tracy")]
+    #[cfg(any(feature = "tracy", target_arch = "wasm32"))]
     let file_setup = false;
-    #[cfg(feature = "tracy")]
+    #[cfg(any(feature = "tracy", target_arch = "wasm32"))]
     let _terminal = terminal;
 
     // Create the terminal writer layer.
@@ -121,15 +137,22 @@ where
     let registry = registry.with(tracing_tracy::TracyLayer::new(
         tracing_tracy::DefaultConfig::default(),
     ));
-    #[cfg(not(feature = "tracy"))]
+    #[cfg(all(not(feature = "tracy"), not(target_arch = "wasm32")))]
     let registry = {
         let (non_blocking, stdio_guard) = tracing_appender::non_blocking(terminal.make_writer());
         guards.push(stdio_guard);
         registry.with(tracing_subscriber::fmt::layer().with_writer(non_blocking))
     };
+    #[cfg(all(not(feature = "tracy"), target_arch = "wasm32"))]
+    let registry = {
+        // No background flusher on the browser main thread; write directly.
+        let _ = &mut guards;
+        let terminal = terminal;
+        registry.with(tracing_subscriber::fmt::layer().with_writer(move || terminal.make_writer()))
+    };
 
     // Try to create the log file's parent folders.
-    #[cfg(not(feature = "tracy"))]
+    #[cfg(all(not(feature = "tracy"), not(target_arch = "wasm32")))]
     if let Some((path, file)) = log_path_file {
         match fs::create_dir_all(path) {
             Ok(_) => {
@@ -153,9 +176,10 @@ where
     } else {
         registry.with(filter).init();
     }
-    #[cfg(feature = "tracy")]
+    #[cfg(any(feature = "tracy", target_arch = "wasm32"))]
     registry.with(filter).init();
 
+    #[cfg(not(target_arch = "wasm32"))]
     if file_setup {
         let (path, file) = log_path_file.unwrap();
         info!(?path, ?file, "Setup terminal and file logging.");

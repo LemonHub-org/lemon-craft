@@ -207,23 +207,31 @@ impl BParticipant {
     fn best_protocol(all: &SortedVec<Cid, SendProtocols>, promises: Promises) -> Option<Cid> {
         // check for mpsc
         all.data.iter().find(|(_, p)| matches!(p, SendProtocols::Mpsc(_))).map(|(c, _)| *c).or_else(
-            || if network_protocol::TcpSendProtocol::<crate::channel::TcpDrain>::supported_promises()
-                .contains(promises)
-            {
-                // check for tcp
-                all.data.iter().find(|(_, p)| matches!(p, SendProtocols::Tcp(_))).map(|(c, _)| *c)
-            } else {
+            || {
+                #[cfg(feature = "networking")]
+                if network_protocol::TcpSendProtocol::<crate::channel::TcpDrain>::supported_promises()
+                    .contains(promises)
+                {
+                    // check for tcp
+                    return all
+                        .data
+                        .iter()
+                        .find(|(_, p)| matches!(p, SendProtocols::Tcp(_)))
+                        .map(|(c, _)| *c);
+                }
+                #[cfg(feature = "quic")]
+                if network_protocol::QuicSendProtocol::<crate::channel::QuicDrain>::supported_promises()
+                    .contains(promises)
+                {
+                    // check for quic, TODO: evaluate to order quic BEFORE tcp once its stable
+                    return all
+                        .data
+                        .iter()
+                        .find(|(_, p)| matches!(p, SendProtocols::Quic(_)))
+                        .map(|(c, _)| *c);
+                }
                 None
-            }
-        ).or_else(
-            // check for quic, TODO: evaluate to order quic BEFORE tcp once its stable
-            || if network_protocol::QuicSendProtocol::<crate::channel::QuicDrain>::supported_promises()
-                .contains(promises)
-            {
-                all.data.iter().find(|(_, p)| matches!(p, SendProtocols::Quic(_))).map(|(c, _)| *c)
-            } else {
-                None
-            }
+            },
         ).or_else(
             || {
                 warn!("couldn't satisfy promises");

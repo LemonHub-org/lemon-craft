@@ -190,6 +190,7 @@ impl Scheduler {
                     mcache.inc();
 
                     let res = match address {
+                        #[cfg(feature = "networking")]
                         ListenAddr::Tcp(addr) => {
                             Protocols::with_tcp_listen(
                                 addr,
@@ -243,6 +244,7 @@ impl Scheduler {
                 ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&self.protocol_metrics));
             self.metrics.connect_request(&addr);
             let protocol = match addr.clone() {
+                #[cfg(feature = "networking")]
                 ConnectAddr::Tcp(addr) => Protocols::with_tcp_connect(addr, metrics).await,
                 #[cfg(feature = "quic")]
                 ConnectAddr::Quic(addr, ref config, name) => {

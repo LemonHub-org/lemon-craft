@@ -32,7 +32,9 @@ type A2sDisconnect = Arc<Mutex<Option<mpsc::UnboundedSender<(Pid, S2bShutdownBpa
 /// Represents a Tcp, Quic, Udp or Mpsc connection address
 #[derive(Clone, Debug)]
 pub enum ConnectAddr {
+    #[cfg(feature = "networking")]
     Tcp(SocketAddr),
+    #[cfg(feature = "networking")]
     Udp(SocketAddr),
     #[cfg(feature = "quic")]
     Quic(SocketAddr, quinn::ClientConfig, String),
@@ -44,7 +46,9 @@ impl ConnectAddr {
     /// protocol is a local channel (mpsc).
     pub fn socket_addr(&self) -> Option<SocketAddr> {
         match self {
+            #[cfg(feature = "networking")]
             Self::Tcp(addr) => Some(*addr),
+            #[cfg(feature = "networking")]
             Self::Udp(addr) => Some(*addr),
             Self::Mpsc(_) => None,
             #[cfg(feature = "quic")]
@@ -56,7 +60,9 @@ impl ConnectAddr {
 /// Represents a Tcp, Quic, Udp or Mpsc listen address
 #[derive(Clone, Debug)]
 pub enum ListenAddr {
+    #[cfg(feature = "networking")]
     Tcp(SocketAddr),
+    #[cfg(feature = "networking")]
     Udp(SocketAddr),
     #[cfg(feature = "quic")]
     Quic(SocketAddr, quinn::ServerConfig),

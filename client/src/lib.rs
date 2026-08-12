@@ -6,6 +6,7 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
+#[cfg(feature = "auth")]
 pub use authc::AuthClientError;
 pub use common_net::msg::ServerInfo;
 pub use specs::{
@@ -69,9 +70,10 @@ use common_net::{
 
 pub use common_net::msg::ClientType;
 use common_state::State;
-use common_systems::add_local_systems;
+use common_systems::add_client_systems;
 use comp::BuffKind;
 use hashbrown::{HashMap, HashSet};
+#[cfg(feature = "quic")]
 use hickory_resolver::{
     Resolver, config::ResolverConfig, net::runtime::TokioRuntimeProvider, proto::rr::RData,
 };
@@ -79,6 +81,7 @@ use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
 use num::traits::FloatConst;
 use rayon::prelude::*;
+#[cfg(feature = "quic")]
 use rustls::client::danger::ServerCertVerified;
 use specs::Component;
 use std::{
@@ -364,6 +367,7 @@ pub struct CharacterList {
     pub loading: bool,
 }
 
+#[cfg(feature = "quic")]
 async fn connect_quic(
     network: &Network,
     hostname: String,
@@ -463,6 +467,7 @@ impl Client {
         _config_dir: PathBuf,
         client_type: ClientType,
     ) -> Result<Self, Error> {
+        #[cfg(feature = "quic")]
         let _ = rustls::crypto::ring::default_provider().install_default(); // needs to be initialized before usage
         // Use `usize::MAX` as the output limit: we implicitly trust servers to not send
         // us too much data (TODO: should we?)
@@ -471,6 +476,7 @@ impl Client {
         init_stage_update(ClientInitStage::ConnectionEstablish);
 
         let mut participant = match addr {
+            #[cfg(feature = "quic")]
             ConnectionArgs::Srv {
                 hostname,
                 prefer_ipv6,
@@ -600,12 +606,14 @@ impl Client {
                     }
                 }
             },
+            #[cfg(feature = "quic")]
             ConnectionArgs::Tcp {
                 hostname,
                 prefer_ipv6,
             } => {
                 addr::try_connect(&network, &hostname, None, prefer_ipv6, ConnectAddr::Tcp).await?
             },
+            #[cfg(feature = "quic")]
             ConnectionArgs::Quic {
                 hostname,
                 prefer_ipv6,
@@ -619,6 +627,8 @@ impl Client {
                 connect_quic(&network, hostname, None, prefer_ipv6, validate_tls).await?
             },
             ConnectionArgs::Mpsc(id) => network.connect(ConnectAddr::Mpsc(id)).await?,
+            #[cfg(not(feature = "quic"))]
+            _ => unreachable!("network connection args are not supported in this build"),
         };
 
         let stream = participant.opened().await?;
@@ -705,7 +715,7 @@ impl Client {
                 world_map.default_chunk,
                 // TODO: Add frontend systems
                 |dispatch_builder| {
-                    add_local_systems(dispatch_builder);
+                    add_client_systems(dispatch_builder);
                     add_foreign_systems(dispatch_builder);
                 },
             );
@@ -1102,6 +1112,7 @@ impl Client {
     ) -> Result<(), Error> {
         // Authentication
         let token_or_username = match &server_info.auth_provider {
+            #[cfg(feature = "auth")]
             Some(addr) => {
                 // Query whether this is a trusted auth server
                 if auth_trusted(addr) {
@@ -1128,6 +1139,8 @@ impl Client {
                     Err(Error::AuthServerNotTrusted)
                 }
             },
+            #[cfg(not(feature = "auth"))]
+            Some(addr) => Err(Error::AuthServerUrlInvalid(addr.to_string())),
             None => Ok(username.to_owned()),
         }?;
 
@@ -3506,6 +3519,7 @@ impl Drop for Client {
             trace!("no disconnect msg necessary as client wasn't registered")
         }
 
+        #[cfg(not(target_arch = "wasm32"))]
         tokio::task::block_in_place(|| {
             if let Err(e) = self
                 .runtime

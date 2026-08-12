@@ -16,7 +16,9 @@ pub(crate) enum ProtocolInfo {
 impl From<ListenAddr> for ProtocolInfo {
     fn from(other: ListenAddr) -> ProtocolInfo {
         match other {
+            #[cfg(feature = "networking")]
             ListenAddr::Tcp(s) => ProtocolInfo::Tcp(s),
+            #[cfg(feature = "networking")]
             ListenAddr::Udp(s) => ProtocolInfo::Udp(s),
             #[cfg(feature = "quic")]
             ListenAddr::Quic(s, _) => ProtocolInfo::Quic(s),
@@ -246,7 +248,9 @@ impl NetworkMetrics {
 #[cfg(feature = "metrics")]
 fn protocolconnect_name(protocol: &ConnectAddr) -> &str {
     match protocol {
+        #[cfg(feature = "networking")]
         ConnectAddr::Tcp(_) => "tcp",
+        #[cfg(feature = "networking")]
         ConnectAddr::Udp(_) => "udp",
         ConnectAddr::Mpsc(_) => "mpsc",
         #[cfg(feature = "quic")]
@@ -257,7 +261,9 @@ fn protocolconnect_name(protocol: &ConnectAddr) -> &str {
 #[cfg(feature = "metrics")]
 fn protocollisten_name(protocol: &ListenAddr) -> &str {
     match protocol {
+        #[cfg(feature = "networking")]
         ListenAddr::Tcp(_) => "tcp",
+        #[cfg(feature = "networking")]
         ListenAddr::Udp(_) => "udp",
         ListenAddr::Mpsc(_) => "mpsc",
         #[cfg(feature = "quic")]

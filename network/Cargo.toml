@@ -10,9 +10,14 @@ workspace = true
 [features]
 metrics = ["prometheus", "network-protocol/metrics"]
 compression = ["lz-fear"]
-quic = ["quinn"]
+quic = ["dep:quinn", "dep:rustls"]
+# TCP/UDP socket transports (native only; the browser singleplayer build uses
+# only the in-process Mpsc transport).
+networking = ["dep:socket2", "tokio/net"]
+# Browser singleplayer build: no sockets and no QUIC in the feature graph.
+wasm-singleplayer = []
 
-default = ["metrics", "compression", "quic"]
+default = ["metrics", "compression", "quic", "networking"]
 
 [dependencies]
 
@@ -22,10 +27,10 @@ network-protocol = { package = "lemoncraft-network-protocol", path = "protocol" 
 bincode = { workspace = true }
 serde = { workspace = true }
 #ipv4/ipv6 behavior
-socket2 = "0.6"
+socket2 = { version = "0.6", optional = true }
 #sending
 crossbeam-channel = { workspace = true }
-tokio = { workspace = true, features = ["io-util", "macros", "net", "time"] }
+tokio = { workspace = true, features = ["io-util", "macros", "time"] }
 tokio-stream = { version = "0.1.2", default-features = false }
 #tracing and metrics
 tracing = { workspace = true }
@@ -38,7 +43,7 @@ lazy_static = { workspace = true }
 rand = { workspace = true }
 #quic support
 quinn = { workspace = true, optional = true }
-rustls = { workspace = true }
+rustls = { workspace = true, optional = true }
 lz-fear = { version = "0.2", optional = true }
 # async traits
 async-trait = { workspace = true }

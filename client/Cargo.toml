@@ -9,6 +9,8 @@ workspace = true
 
 [features]
 simd = ["vek/platform_intrinsics"]
+quic = ["network/quic", "dep:quinn", "dep:rustls", "dep:hickory-resolver"]
+networking = ["network/networking"]
 bin_bot = [
     "serde",
     "ron",
@@ -18,11 +20,17 @@ bin_bot = [
     "async-channel",
     "voxygen-i18n-helpers",
     "client-i18n",
+    "auth",
 ]
 tracy = ["common-base/tracy"]
 tick_network = []
+# Auth-server login flow (hyper/rustls; native only)
+auth = ["dep:authc"]
+# Browser singleplayer build: no sockets, DNS, QUIC/TLS, or auth in the feature
+# graph.
+wasm-singleplayer = []
 
-default = ["simd"]
+default = ["simd", "quic", "auth", "networking"]
 
 [dependencies]
 common = { package = "lemoncraft-common", path = "../common", features = [
@@ -34,17 +42,16 @@ common-systems = { package = "lemoncraft-common-systems", path = "../common/syst
 common-net = { package = "lemoncraft-common-net", path = "../common/net" }
 network = { package = "lemoncraft-network", path = "../network", features = [
     "compression",
-    "quic",
 ], default-features = false }
 
 byteorder = "1.3.2"
-tokio = { workspace = true, features = ["rt-multi-thread"] }
-quinn = { workspace = true, features = ["rustls"] }
-rustls = { workspace = true }
+tokio = { workspace = true, features = ["rt"] }
+quinn = { workspace = true, features = ["rustls"], optional = true }
+rustls = { workspace = true, optional = true }
 hickory-resolver = { version = "0.26.1", features = [
     "system-config",
     "tokio",
-] }
+], optional = true }
 image = { workspace = true }
 num = { workspace = true }
 tracing = { workspace = true }
@@ -56,7 +63,7 @@ specs = { workspace = true, features = [
 ] }
 vek = { workspace = true }
 hashbrown = { workspace = true }
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "ae0e16783a9f9041951296885f082308e155db79" } # xMAC94x/current_master_till_refactored branch
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "ae0e16783a9f9041951296885f082308e155db79", optional = true } # xMAC94x/current_master_till_refactored branch
 
 #TODO: put bot in a different crate
 #bot only
@@ -70,6 +77,9 @@ clap = { workspace = true, optional = true }
 rustyline = { version = "18", optional = true }
 ## logging
 common-frontend = { package = "lemoncraft-common-frontend", path = "../common/frontend", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread"] }
 
 [dev-dependencies]
 voxygen-i18n-helpers = { package = "lemoncraft-voxygen-i18n-helpers", path = "../voxygen/i18n-helpers" }

@@ -59,11 +59,16 @@ fn main() {
                 return;
             },
             cli::Commands::ListWgpuDevices => {
-                let adapters = Instance::new(&wgpu::InstanceDescriptor::from_env_or_default())
-                    .enumerate_adapters(Backends::default());
-                for adapter in adapters {
-                    println!("{}", adapter.get_info().name);
+                #[cfg(not(target_arch = "wasm32"))]
+                {
+                    let adapters = Instance::new(&wgpu::InstanceDescriptor::from_env_or_default())
+                        .enumerate_adapters(Backends::default());
+                    for adapter in adapters {
+                        println!("{}", adapter.get_info().name);
+                    }
                 }
+                #[cfg(target_arch = "wasm32")]
+                println!("not supported in the browser build");
                 return;
             },
         }
@@ -124,6 +129,7 @@ fn main() {
     // TODO: evaluate std::thread::available_concurrency as a num_cpus replacement
     let cores = num_cpus::get();
     let tokio_runtime = Arc::new(
+        #[cfg(not(target_arch = "wasm32"))]
         Builder::new_multi_thread()
             .enable_all()
             .worker_threads((cores / 4).max(MIN_RECOMMENDED_TOKIO_THREADS))
@@ -134,6 +140,8 @@ fn main() {
             })
             .build()
             .unwrap(),
+        #[cfg(target_arch = "wasm32")]
+        Builder::new_current_thread().enable_all().build().unwrap(),
     );
 
     // Initialise watcher for animation hot-reloading

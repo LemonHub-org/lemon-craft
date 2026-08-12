@@ -7,27 +7,55 @@ use winit::{event::WindowEvent, keyboard::NamedKey};
 /// A buffer for short-term storage and transfer within and between
 /// applications.
 pub struct Clipboard {
+    #[cfg(not(target_arch = "wasm32"))]
     connection: Option<window_clipboard::Clipboard>,
+    #[cfg(target_arch = "wasm32")]
+    _private: (),
 }
 
 impl Clipboard {
     /// Creates a new [`Clipboard`] for the given window.
     pub fn connect(window: &winit::window::Window) -> Clipboard {
+        #[cfg(not(target_arch = "wasm32"))]
         #[expect(unsafe_code)]
         let connection = unsafe { window_clipboard::Clipboard::connect(window) }.ok();
 
-        Clipboard { connection }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            Clipboard { connection }
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            let _ = window;
+            // The browser adapter (navigator.clipboard) lands with the launcher
+            // milestone; for now clipboard access is a no-op.
+            Clipboard { _private: () }
+        }
     }
 
     /// Reads the current content of the [`Clipboard`] as text.
-    pub fn read(&self) -> Option<String> { self.connection.as_ref()?.read().ok() }
+    pub fn read(&self) -> Option<String> {
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            self.connection.as_ref()?.read().ok()
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            None
+        }
+    }
 
     /// Writes the given text contents to the [`Clipboard`].
     pub fn write(&mut self, contents: String) {
+        #[cfg(not(target_arch = "wasm32"))]
         if let Some(clipboard) = &mut self.connection
             && let Err(error) = clipboard.write(contents)
         {
             tracing::warn!("error writing to clipboard: {}", error)
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            let _ = contents;
         }
     }
 }

@@ -237,8 +237,10 @@ impl Renderer {
             .create_surface(window)
             .expect("Failed to create a surface");
 
+        #[cfg(not(target_arch = "wasm32"))]
         let adapters = instance.enumerate_adapters(backends);
 
+        #[cfg(not(target_arch = "wasm32"))]
         for (i, adapter) in adapters.iter().enumerate() {
             let info = adapter.get_info();
             let supported_limits = adapter.limits();
@@ -254,6 +256,7 @@ impl Renderer {
         }
 
         let adapter = match std::env::var("WGPU_ADAPTER").ok() {
+            #[cfg(not(target_arch = "wasm32"))]
             Some(filter) if !filter.is_empty() => adapters
                 .into_iter()
                 .enumerate()
@@ -265,6 +268,7 @@ impl Renderer {
                     full_name.contains(&filter).then_some(adapter)
                 })
                 .ok_or(RenderError::CouldNotFindAdapter)?,
+            #[cfg(not(target_arch = "wasm32"))]
             Some(_) | None => {
                 runtime.block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
                     power_preference: wgpu::PowerPreference::HighPerformance,
@@ -272,6 +276,13 @@ impl Renderer {
                     force_fallback_adapter: false,
                 }))?
             },
+            // The browser build has no adapter enumeration or env override.
+            #[cfg(target_arch = "wasm32")]
+            _ => runtime.block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
+                power_preference: wgpu::PowerPreference::HighPerformance,
+                compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
+            }))?,
         };
 
         let info = adapter.get_info();

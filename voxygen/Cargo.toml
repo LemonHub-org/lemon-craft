@@ -32,13 +32,19 @@ tracy = ["common-frontend/tracy", "client/tracy", "wgpu-profiler/tracy"]
 # enables heap profiling with tracy
 tracy-memory = ["tracy"]
 egui-ui = ["voxygen-egui", "egui", "egui-wgpu", "egui-winit"]
-shaderc-from-source = ["shaderc/build-from-source"]
+shaderc-from-source = ["shaderc", "shaderc/build-from-source"]
 discord = ["discord-sdk"]
 bin_cmd_doc_gen = []
+# Multiplayer connectivity: sockets, QUIC/TLS, and auth-server login.
+multiplayer = ["client/quic", "client/networking", "client/auth"]
+# Browser singleplayer build: no sockets, QUIC, auth, shaderc, server, or
+# native platform integrations in the feature graph.
+wasm-singleplayer = ["client/wasm-singleplayer"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
 default-publish = [
     "singleplayer",
+    "multiplayer",
     "native-dialog",
     "discord",
     "simd",
@@ -46,7 +52,9 @@ default-publish = [
 default = ["default-publish", "hot-reloading", "shaderc-from-source", "egui-ui"]
 
 [dependencies]
-client = { package = "lemoncraft-client", path = "../client" }
+client = { package = "lemoncraft-client", path = "../client", default-features = false, features = [
+    "simd",
+] }
 common = { package = "lemoncraft-common", path = "../common" }
 common-base = { package = "lemoncraft-common-base", path = "../common/base" }
 common-ecs = { package = "lemoncraft-common-ecs", path = "../common/ecs" }
@@ -66,7 +74,7 @@ winit = { version = "0.30.12", features = ["serde"] }
 wgpu = { version = "27", features = ["spirv", "glsl"] }
 wgpu-profiler = "0.25"
 bytemuck = { version = "1.7", features = ["derive"] }
-shaderc = "0.10"
+shaderc = { version = "0.10", optional = true }
 
 # Ui
 conrod_core = { git = "https://gitlab.com/veloren/conrod.git", branch = "copypasta_0.7" }
@@ -74,7 +82,6 @@ euc = "0.5.3"
 # We should probably migrate to a more recent version at some point, but this is significant amount of work.
 # Note: this does not depend on the version of `winit` anymore, all dependent code was moved into Voxygen
 iced = { package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28" }
-window_clipboard = "0.5"
 glyph_brush = "0.7.0"
 # EGUI
 egui = { version = "0.33", optional = true }
@@ -131,13 +138,12 @@ slab = { workspace = true }
 strum = { workspace = true }
 tracing = { workspace = true }
 treeculler = "0.4"
-tokio = { workspace = true, features = ["rt-multi-thread"] }
+tokio = { workspace = true, features = ["rt"] }
 num_cpus = "1.0"
 inline_tweak = { workspace = true }
 itertools = { workspace = true }
 sha2 = { workspace = true }
 bitflags = { workspace = true, features = ["serde"] }
-open = "5.3.2"
 
 # Discord RPC
 discord-sdk = { version = "0.4", optional = true }
@@ -153,8 +159,14 @@ winres = "0.1"
 [target.'cfg(target_family = "windows")'.dependencies]
 mimalloc = { workspace = true }
 
+# Native-only platform integrations
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+window_clipboard = "0.5"
+open = "5.3.2"
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
 # Mumble
-[target.'cfg(not(target_os="macos"))'.dependencies]
+[target.'cfg(all(not(target_os = "macos"), not(target_arch = "wasm32")))'.dependencies]
 mumble-link = "0.2.0"
 
 [dev-dependencies]
