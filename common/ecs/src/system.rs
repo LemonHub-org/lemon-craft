@@ -161,18 +161,18 @@ impl CpuTimeStats {
 /// 6s..     [------------]
 /// ```
 pub fn gen_stats(
-    timelines: &HashMap<String, CpuTimeline>,
+    timelines: &HashMap<&'static str, CpuTimeline>,
     tick_work_start: Instant,
     rayon_threads: u32,
     physical_threads: u32,
-) -> HashMap<String, CpuTimeStats> {
+) -> HashMap<&'static str, CpuTimeStats> {
     let mut result = HashMap::new();
     let mut all = timelines
         .iter()
         .flat_map(|(s, t)| {
             let mut stat = CpuTimeStats::default();
             stat.measures.push((0, 0.0));
-            result.insert(s.clone(), stat);
+            result.insert(*s, stat);
             t.measures.iter().map(|e| &e.0)
         })
         .collect::<Vec<_>>();
@@ -289,7 +289,7 @@ where
             .stats
             .lock()
             .unwrap()
-            .insert(T::NAME.to_string(), self.cpu_stats.clone());
+            .insert(T::NAME, self.cpu_stats.clone());
     }
 }
 
@@ -314,7 +314,7 @@ mod tests {
     fn mock_timelines(
         tick_start: Instant,
         durations: Vec<(u64, u64, ParMode)>,
-    ) -> HashMap<String, CpuTimeline> {
+    ) -> HashMap<&'static str, CpuTimeline> {
         let job = durations
             .iter()
             .enumerate()
@@ -330,7 +330,13 @@ mod tests {
 
         job.iter()
             .map(|(i, f, s, p)| {
-                (i.to_string(), CpuTimeline {
+                let name: &'static str = match *i {
+                    0 => "0",
+                    1 => "1",
+                    2 => "2",
+                    _ => unreachable!(),
+                };
+                (name, CpuTimeline {
                     measures: vec![(*f, *p), (*s, ParMode::None)],
                 })
             })

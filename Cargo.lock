@@ -2626,11 +2626,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de51e6874e94e7bf76d726fc5d13ba782deca734ff60d5bb2fb2607c7406555"
 dependencies = [
  "cfg-if 1.0.4",
+ "js-sys",
  "libc",
  "r-efi 6.0.0",
  "rand_core 0.10.1",
  "wasip2",
  "wasip3",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -3167,12 +3169,10 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.4.0"
-source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 
 [[package]]
 name = "iced_futures"
 version = "0.3.0"
-source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "futures",
  "log",
@@ -3182,7 +3182,6 @@ dependencies = [
 [[package]]
 name = "iced_native"
 version = "0.4.0"
-source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -3797,6 +3796,9 @@ dependencies = [
  "enum-map",
  "enumset",
  "fxhash",
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "hashbrown 0.17.1",
  "indexmap 2.14.0",
  "inline_tweak",
@@ -4051,6 +4053,7 @@ dependencies = [
  "censor",
  "chrono",
  "chrono-tz",
+ "criterion",
  "crossbeam-channel",
  "drop_guard",
  "enum-map",
@@ -4260,6 +4263,16 @@ dependencies = [
  "rand 0.10.1",
  "tracing",
  "vek 0.17.2",
+]
+
+[[package]]
+name = "lemoncraft-wasm-launcher"
+version = "0.18.0"
+dependencies = [
+ "console_error_panic_hook",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

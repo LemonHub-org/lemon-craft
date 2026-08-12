@@ -146,6 +146,7 @@ impl State {
         };
 
         let is_first_error = Arc::new(AtomicBool::new(true));
+        #[cfg(not(target_arch = "wasm32"))]
         let set_priority = move || {
             use thread_priority::*;
             let priority = if is_main_task {
@@ -182,8 +183,10 @@ impl State {
                     if let Some(stack_size) = thread.stack_size() {
                         b = b.stack_size(stack_size);
                     }
+                    #[cfg(not(target_arch = "wasm32"))]
                     let set_priority = set_priority.clone();
                     b.spawn(move || {
+                        #[cfg(not(target_arch = "wasm32"))]
                         set_priority();
                         thread.run()
                     })?;

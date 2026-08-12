@@ -7,6 +7,7 @@
 #![feature(box_patterns, option_zip, const_type_name, slice_partition_dedup)]
 
 pub mod automod;
+pub mod block_damage;
 mod character_creator;
 pub mod chat;
 pub mod chunk_generator;
@@ -97,7 +98,7 @@ use common_net::{
     sync::WorldSyncExt,
 };
 use common_state::{AreasContainer, BlockDiff, BuildArea, State};
-use common_systems::add_local_systems;
+use common_systems::add_shared_systems;
 use lemoncraft_query_server::server::QueryServer;
 use metrics::{EcsSystemMetrics, GameplayMetrics, PhysicsMetrics, TickMetrics};
 use network::{ListenAddr, Network, Pid};
@@ -167,10 +168,25 @@ pub const MIN_VD: u32 = 6;
 #[derive(Copy, Clone, Default)]
 pub struct Tick(u64);
 
+impl Tick {
+    pub fn new(value: u64) -> Self { Self(value) }
+
+    pub const fn get(self) -> u64 { self.0 }
+}
+
 #[derive(Clone)]
 pub struct HwStats {
     hardware_threads: u32,
     rayon_threads: u32,
+}
+
+impl HwStats {
+    pub fn new(hardware_threads: u32, rayon_threads: u32) -> Self {
+        Self {
+            hardware_threads,
+            rayon_threads,
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -182,6 +198,10 @@ enum DisconnectType {
 // Start of Tick, used for metrics
 #[derive(Copy, Clone)]
 pub struct TickStart(Instant);
+
+impl TickStart {
+    pub fn new(now: Instant) -> Self { Self(now) }
+}
 
 /// Store of BattleMode cooldowns for players while they go offline
 #[derive(Clone, Default, Debug)]
@@ -342,7 +362,7 @@ impl Server {
             map_size_lg,
             Arc::clone(&map.default_chunk),
             |dispatcher_builder| {
-                add_local_systems(dispatcher_builder);
+                add_shared_systems(dispatcher_builder);
                 sys::msg::add_server_systems(dispatcher_builder);
                 sys::add_server_systems(dispatcher_builder);
                 #[cfg(feature = "worldgen")]
@@ -357,6 +377,9 @@ impl Server {
         state.ecs_mut().insert(RecentClientIPs::default());
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(editable_settings);
+        state
+            .ecs_mut()
+            .insert(crate::block_damage::BlockDamage::default());
         state.ecs_mut().insert(DataDir {
             path: data_dir.to_owned(),
         });

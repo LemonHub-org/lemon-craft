@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Mutex};
 
 #[derive(Default)]
 pub struct SysMetrics {
-    pub stats: Mutex<HashMap<String, CpuTimeline>>,
+    pub stats: Mutex<HashMap<&'static str, CpuTimeline>>,
 }
 
 #[derive(Default)]

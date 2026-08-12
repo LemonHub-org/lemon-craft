@@ -2,17 +2,20 @@
 use crate::TerrainPersistence;
 use crate::{EditableSettings, Settings, client::Client};
 use common::{
+    assets::AssetExt,
     comp::{
-        Admin, AdminRole, Body, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori,
-        Player, Pos, Presence, PresenceKind, Scale, SkillSet, SpectatingEntity, Vel,
+        Admin, AdminRole, Body, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Inventory,
+        Ori, Player, Pos, Presence, PresenceKind, Scale, SkillSet, SpectatingEntity, Vel,
+        inventory::item::{AbilityMap, ItemDef, MaterialStatManifest},
     },
+    consts::MAX_PICKUP_RANGE,
     event::{self, EmitExt},
     event_emitters,
     link::Is,
     mounting::{Rider, VolumeRider},
     resources::{DeltaTime, PlayerPhysicsSetting, PlayerPhysicsSettings},
     slowjob::SlowJobPool,
-    terrain::TerrainGrid,
+    terrain::{Block, BlockKind, TerrainGrid},
     uid::IdMaps,
     vol::ReadVol,
 };
@@ -70,6 +73,7 @@ impl Sys {
         healths: &ReadStorage<'_, Health>,
         rare_writes: &parking_lot::Mutex<RareWrites<'_, '_>>,
         position: Option<&mut Pos>,
+        place_blocks: &parking_lot::Mutex<Vec<(specs::Entity, Vec3<i32>, BlockKind)>>,
         spectating_entity: &mut Option<Option<common::uid::Uid>>,
         controller: Option<&mut Controller>,
         settings: &Read<'_, Settings>,
@@ -211,6 +215,21 @@ impl Sys {
                             }
                         }
                     }
+                } else if let Some(position) = position {
+                    // Survival building: validate cheaply here (position, target,
+                    // reach) and queue the placement; the actual inventory
+                    // consumption and block write happen serially after the
+                    // parallel message processing.
+                    let kind = new_block.kind();
+                    let player_cell = position.0.map(|e| e.floor() as i32);
+                    let is_valid_pos = terrain.get(pos).is_ok_and(|block| block.is_air())
+                        && (pos.map(|e| e as f32) + Vec3::broadcast(0.5)).distance(position.0)
+                            <= MAX_PICKUP_RANGE
+                        && pos != player_cell
+                        && pos != player_cell + Vec3::unit_z();
+                    if is_valid_pos {
+                        place_blocks.lock().push((entity, pos, kind));
+                    }
                 }
             },
             ClientGeneral::UnlockSkill(skill) => {
@@ -322,6 +341,11 @@ impl<'a> System<'a> for Sys {
         TerrainPersistenceData<'a>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Admin>,
+        (
+            ReadExpect<'a, AbilityMap>,
+            ReadExpect<'a, MaterialStatManifest>,
+        ),
+        WriteStorage<'a, Inventory>,
     );
 
     const NAME: &'static str = "msg::in_game";
@@ -355,6 +379,8 @@ impl<'a> System<'a> for Sys {
             mut terrain_persistence,
             players,
             admins,
+            (ability_map, msm),
+            mut inventories,
         ): Self::SystemData,
     ) {
         let time_for_vd_changes = Instant::now();
@@ -365,6 +391,10 @@ impl<'a> System<'a> for Sys {
             block_changes: &mut block_changes,
             _terrain_persistence: &mut terrain_persistence,
         });
+        // Survival block placements queued by the parallel message handling
+        // phase; consumed serially below.
+        let place_blocks =
+            parking_lot::Mutex::new(Vec::<(specs::Entity, Vec3<i32>, BlockKind)>::new());
 
         let player_physics_settings = &*player_physics_settings_;
         let mut deferred_updates = (
@@ -428,6 +458,7 @@ impl<'a> System<'a> for Sys {
                             &healths,
                             &rare_writes,
                             pos.as_deref_mut(),
+                            &place_blocks,
                             &mut spectating_entity,
                             controller.as_deref_mut(),
                             &settings,
@@ -618,5 +649,52 @@ impl<'a> System<'a> for Sys {
         slow_jobs.spawn("CHUNK_DROP", move || {
             drop(deferred_updates);
         });
+
+        // Apply queued survival placements serially: consume the block item
+        // from the player's inventory and write the block (derived from the
+        // item, never trusted from the client).
+        let placements = std::mem::take(&mut *place_blocks.lock());
+        for (entity, pos, kind) in placements {
+            // Re-validate against the player's current position.
+            let Some(player_pos) = positions.get(entity) else {
+                continue;
+            };
+            let player_cell = player_pos.0.map(|e| e.floor() as i32);
+            let is_valid_pos = terrain.get(pos).is_ok_and(|block| block.is_air())
+                && (pos.map(|e| e as f32) + Vec3::broadcast(0.5)).distance(player_pos.0)
+                    <= MAX_PICKUP_RANGE
+                && pos != player_cell
+                && pos != player_cell + Vec3::unit_z();
+            if !is_valid_pos {
+                continue;
+            }
+            let Some(item_id) = kind.item_id() else {
+                continue;
+            };
+            let Ok(item_def) =
+                std::sync::Arc::<ItemDef>::load_cloned(&format!("common.items.blocks.{}", item_id))
+            else {
+                continue;
+            };
+            let Some(mut inventory) = inventories.get_mut(entity) else {
+                continue;
+            };
+            let Some(consumed) = inventory.remove_item_amount(&item_def, 1, &ability_map, &msm)
+            else {
+                continue;
+            };
+            let color = consumed
+                .first()
+                .and_then(|item| item.block_color())
+                .unwrap_or_else(|| kind.default_color());
+            let new_block = Block::new(kind, color);
+            // Take the rare writes lock as briefly as possible.
+            let mut guard = rare_writes.lock();
+            let _was_set = guard.block_changes.try_set(pos, new_block).is_some();
+            #[cfg(feature = "persistent_world")]
+            if _was_set && let Some(terrain_persistence) = guard._terrain_persistence.as_mut() {
+                terrain_persistence.set_block(pos, new_block);
+            }
+        }
     }
 }

@@ -8,9 +8,30 @@ use common_ecs::{Job, Origin, Phase, SysMetrics, System};
 use lemoncraft_query_server::server::Metrics as RawQueryServerMetrics;
 use specs::{Entities, Join, Read, ReadExpect};
 use std::{
-    sync::{Arc, Mutex},
-    time::Instant,
+    sync::{Arc, Mutex, OnceLock},
+    time::{Duration, Instant},
 };
+
+/// How often (in ticks) the per-system ECS metrics are aggregated and
+/// exported to Prometheus. Aggregation (`gen_stats`) is comparatively
+/// expensive: it combines the timelines of all systems for every measurement
+/// point, so it only needs to run often enough to keep slow systems visible.
+/// Overridable via the `VELOREN_METRICS_SAMPLE_INTERVAL` environment variable.
+const METRIC_SAMPLE_INTERVAL_TICKS_DEFAULT: u64 = 20;
+/// A tick that takes longer than this is considered slow and is always
+/// sampled, even between regular sampling intervals.
+const SLOW_TICK_THRESHOLD: Duration = Duration::from_millis(50);
+
+fn metric_sample_interval_ticks() -> u64 {
+    static INTERVAL: OnceLock<u64> = OnceLock::new();
+    *INTERVAL.get_or_init(|| {
+        std::env::var("VELOREN_METRICS_SAMPLE_INTERVAL")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .filter(|v| *v > 0)
+            .unwrap_or(METRIC_SAMPLE_INTERVAL_TICKS_DEFAULT)
+    })
+}
 
 /// This system exports metrics
 #[derive(Default)]
@@ -64,37 +85,50 @@ impl<'a> System<'a> for Sys {
 
         let start = Instant::now();
 
+        // Aggregate the per-system timelines only every few ticks: `gen_stats`
+        // iterates all measurement points of all systems, which is
+        // comparatively expensive to do every tick. Slow ticks are always
+        // sampled so that spikes remain visible.
+        let sample_ecs_metrics = tick.0 % metric_sample_interval_ticks() == 0
+            || tick_start.0.elapsed() > SLOW_TICK_THRESHOLD;
+
+        // Only needed for the tracy-gated plots below.
+        #[cfg(not(feature = "tracy"))]
+        let _ = chunk_generator;
+
         let mut state = sys_metrics.stats.lock().unwrap();
         //this system hasn't run yet
         state.remove(Self::NAME);
 
-        for (name, stat) in common_ecs::gen_stats(
-            &state,
-            tick_start.0,
-            hw_stats.rayon_threads,
-            hw_stats.hardware_threads,
-        ) {
-            export_ecs
-                .system_start_time
-                .with_label_values(&[&name])
-                .set(stat.start_ns() as i64);
-            export_ecs
-                .system_thread_avg
-                .with_label_values(&[&name])
-                .set(stat.avg_threads() as f64);
-            let len = stat.length_ns();
-            export_ecs
-                .system_length_time
-                .with_label_values(&[&name])
-                .set(len as i64);
-            export_ecs
-                .system_length_count
-                .with_label_values(&[&name])
-                .inc_by(len);
-            export_ecs
-                .system_length_hist
-                .with_label_values(&[&name])
-                .observe(len as f64 / NANOSEC_PER_SEC);
+        if sample_ecs_metrics {
+            for (name, stat) in common_ecs::gen_stats(
+                &state,
+                tick_start.0,
+                hw_stats.rayon_threads,
+                hw_stats.hardware_threads,
+            ) {
+                export_ecs
+                    .system_start_time
+                    .with_label_values(&[name])
+                    .set(stat.start_ns() as i64);
+                export_ecs
+                    .system_thread_avg
+                    .with_label_values(&[name])
+                    .set(stat.avg_threads() as f64);
+                let len = stat.length_ns();
+                export_ecs
+                    .system_length_time
+                    .with_label_values(&[name])
+                    .set(len as i64);
+                export_ecs
+                    .system_length_count
+                    .with_label_values(&[name])
+                    .inc_by(len);
+                export_ecs
+                    .system_length_hist
+                    .with_label_values(&[name])
+                    .observe(len as f64 / NANOSEC_PER_SEC);
+            }
         }
 
         // Report other info
@@ -116,13 +150,20 @@ impl<'a> System<'a> for Sys {
             let entity_count = entities.join().count();
             export_tick.entity_count.set(entity_count as i64);
         }
-        common_base::plot!("entity count", entities.join().count() as f64);
-        common_base::plot!(
-            "pending chunks",
-            chunk_generator.pending_chunks().count() as f64
-        );
-        if let Some(terrain) = terrain.as_ref() {
-            common_base::plot!("chunk count", terrain.iter().count() as f64);
+        // These plots are only meaningful in profiling builds; in normal builds
+        // the values would be expensive full scans (entities, pending chunks,
+        // terrain) executed every tick for no observer. The equivalent
+        // counts are exported to Prometheus every 100 ticks above.
+        #[cfg(feature = "tracy")]
+        {
+            common_base::plot!("entity count", entities.join().count() as f64);
+            common_base::plot!(
+                "pending chunks",
+                chunk_generator.pending_chunks().count() as f64
+            );
+            if let Some(terrain) = terrain.as_ref() {
+                common_base::plot!("chunk count", terrain.iter().count() as f64);
+            }
         }
 
         //detailed physics metrics

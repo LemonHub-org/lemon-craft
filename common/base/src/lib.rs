@@ -25,8 +25,11 @@ pub const TRACY_ENABLED: bool = cfg!(feature = "tracy");
 #[macro_export]
 macro_rules! plot {
     ($name:expr, $value:expr) => {
-        // type check
-        let _: f64 = $value;
+        // The argument must not be evaluated (or even compiled) when Tracy is
+        // disabled: call sites may pass expensive expressions (e.g. full ECS
+        // joins) which should have zero cost outside of profiling builds.
+        // Gate the call site with `#[cfg(feature = "tracy")]` if the value has
+        // side effects you want to keep out of normal builds.
     };
 }
 
@@ -563,4 +566,23 @@ fn test_struct_iter() {
             body_type: BodyType::Female
         },
     ])
+}
+
+#[cfg(all(test, not(feature = "tracy")))]
+mod plot_tests {
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static EVALUATIONS: AtomicU64 = AtomicU64::new(0);
+
+    #[expect(dead_code)]
+    fn count_evaluations() -> f64 {
+        EVALUATIONS.fetch_add(1, Ordering::SeqCst);
+        0.0
+    }
+
+    #[test]
+    fn plot_does_not_evaluate_arguments_without_tracy() {
+        crate::plot!("test", count_evaluations());
+        assert_eq!(EVALUATIONS.load(Ordering::SeqCst), 0);
+    }
 }

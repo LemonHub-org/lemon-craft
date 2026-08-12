@@ -184,8 +184,10 @@ macro_rules! trackers {
                             let removed = tracker.removed().into_iter().count();
 
                             if plot_counts {
-                                let sum = inserted + modified + removed;
-                                common_base::plot!(concat!($name, "updates"), sum as f64);
+                                common_base::plot!(
+                                    concat!($name, "updates"),
+                                    (inserted + modified + removed) as f64
+                                );
                             }
 
                             if LOG_COUNTS {

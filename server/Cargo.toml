@@ -14,8 +14,10 @@ persistent_world = []
 hot-reloading = ["common/hot-reloading"]
 hot-agent = ["server-agent/use-dyn-lib"]
 hot-site = ["world/use-dyn-lib"]
+networking = ["network/networking"]
+tracy = ["common-base/tracy"]
 
-default = ["worldgen", "persistent_world", "simd"]
+default = ["worldgen", "persistent_world", "simd", "networking"]
 
 [dependencies]
 common = { package = "lemoncraft-common", path = "../common" }
@@ -78,3 +80,10 @@ rusqlite = { workspace = true }
 refinery = { version = "0.9", features = ["rusqlite"] }
 
 schnellru = "0.2.1"
+
+[dev-dependencies]
+criterion = { workspace = true }
+
+[[bench]]
+name = "scenarios"
+harness = false
