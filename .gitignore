@@ -16,6 +16,9 @@ todo.txt
 userdata
 Makefile
 
+## WASM launcher build output
+wasm/dist/
+
 ## Allow asset hud settings
 !assets/voxygen/i18n/*/hud/settings.ron
 
