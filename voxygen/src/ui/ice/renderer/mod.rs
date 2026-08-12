@@ -5,7 +5,7 @@ mod widget;
 
 pub use defaults::Defaults;
 
-use primitive::Primitive;
+pub use primitive::Primitive;
 
 use super::{
     super::graphic::{self, Graphic, TexId},
@@ -31,7 +31,6 @@ enum DrawKind {
     Plain,
 }
 
-#[expect(dead_code)] // TODO: remove once WorldPos is used
 enum DrawCommand {
     Draw { kind: DrawKind, verts: Range<u32> },
     Scissor(Aabr<u16>),
@@ -113,6 +112,8 @@ pub struct IcedRenderer {
     start: usize,
     // Draw commands for the next render
     draw_commands: Vec<DrawCommand>,
+    // Index of the next ingame locals buffer to fill (reset per frame)
+    world_local_index: usize,
 }
 impl IcedRenderer {
     pub fn new(
@@ -142,7 +143,35 @@ impl IcedRenderer {
             win_dims: scaled_resolution,
             window_scissor: default_scissor(physical_resolution),
             start: 0,
+            world_local_index: 0,
         })
+    }
+
+    /// Draw an image with the given bounds and color (no source rectangle).
+    pub fn draw_image(
+        &mut self,
+        handle: graphic::Id,
+        bounds: iced::Rectangle,
+        color: vek::Rgba<u8>,
+    ) -> Primitive {
+        Primitive::Image {
+            handle: (handle, Rotation::None),
+            bounds,
+            color,
+            source_rect: None,
+        }
+    }
+
+    /// Draw a solid rectangle in linear color space.
+    pub fn draw_rectangle(
+        &mut self,
+        bounds: iced::Rectangle,
+        linear_color: vek::Rgba<f32>,
+    ) -> Primitive {
+        Primitive::Rectangle {
+            bounds,
+            linear_color,
+        }
     }
 
     pub fn add_font(&mut self, font: RawFont) -> FontId { self.cache.add_font(font) }
@@ -189,6 +218,7 @@ impl IcedRenderer {
         primitive: Primitive,
         renderer: &mut Renderer,
         pool: Option<&SlowJobPool>,
+        view_projection_mat: Option<Mat4<f32>>,
     ) {
         span!(_guard, "draw", "IcedRenderer::draw");
         // Re-use memory
@@ -198,8 +228,16 @@ impl IcedRenderer {
 
         self.current_state = State::Plain;
         self.start = 0;
+        self.world_local_index = 0;
 
-        self.draw_primitive(primitive, Vec2::zero(), 1.0, renderer, pool);
+        self.draw_primitive(
+            primitive,
+            Vec2::zero(),
+            1.0,
+            renderer,
+            pool,
+            view_projection_mat,
+        );
 
         // Enter the final command.
         self.draw_commands.push(match self.current_state {
@@ -428,12 +466,13 @@ impl IcedRenderer {
         alpha: f32,
         renderer: &mut Renderer,
         pool: Option<&SlowJobPool>,
+        view_projection_mat: Option<Mat4<f32>>,
     ) {
         match primitive {
             Primitive::Group { primitives } => {
-                primitives
-                    .into_iter()
-                    .for_each(|p| self.draw_primitive(p, offset, alpha, renderer, pool));
+                primitives.into_iter().for_each(|p| {
+                    self.draw_primitive(p, offset, alpha, renderer, pool, view_projection_mat)
+                });
             },
             Primitive::Image {
                 handle,
@@ -736,7 +775,14 @@ impl IcedRenderer {
                 // TODO: cull primitives outside the current scissor
 
                 // Renderer child
-                self.draw_primitive(*content, offset + clip_offset, alpha, renderer, pool);
+                self.draw_primitive(
+                    *content,
+                    offset + clip_offset,
+                    alpha,
+                    renderer,
+                    pool,
+                    view_projection_mat,
+                );
 
                 // Reset scissor
                 self.draw_commands.push(match self.current_state {
@@ -751,7 +797,76 @@ impl IcedRenderer {
                     .push(DrawCommand::Scissor(self.window_scissor));
             },
             Primitive::Opacity { alpha: a, content } => {
-                self.draw_primitive(*content, offset, alpha * a, renderer, pool);
+                self.draw_primitive(
+                    *content,
+                    offset,
+                    alpha * a,
+                    renderer,
+                    pool,
+                    view_projection_mat,
+                );
+            },
+            Primitive::WorldPos { pos, dims, content } => {
+                let view_projection_mat = match view_projection_mat {
+                    Some(mat) => mat,
+                    None => return,
+                };
+                // Project the world position into normalized device coordinates
+                // and cull the content if it is behind the camera or outside the
+                // frustum (mirrors the Conrod `Ingame` widget logic).
+                let pos_on_screen = (view_projection_mat * Vec4::from_point(pos)).homogenized();
+                let visible = pos_on_screen.z > 0.0 && pos_on_screen.z < 1.0 && {
+                    let x = pos_on_screen.x;
+                    let y = pos_on_screen.y;
+                    let (w, h) = dims.into_tuple();
+                    let (half_w, half_h) = (w / self.win_dims.x, h / self.win_dims.y);
+                    (x - half_w < 1.0 && x + half_w > -1.0)
+                        && (y - half_h < 1.0 && y + half_h > -1.0)
+                };
+                if !visible {
+                    return;
+                }
+
+                // Finish the current command.
+                self.draw_commands.push(match self.current_state {
+                    State::Plain => DrawCommand::plain(self.start..self.mesh.vertices().len()),
+                    State::Image(id) => {
+                        DrawCommand::image(self.start..self.mesh.vertices().len(), id)
+                    },
+                });
+                self.start = self.mesh.vertices().len();
+
+                // Fill the next ingame locals buffer with the world position.
+                let world_pos = Vec4::from_point(pos);
+                let index = self.world_local_index;
+                self.world_local_index += 1;
+                if index < self.ingame_locals.len() {
+                    renderer.update_consts(&mut self.ingame_locals[index], &[world_pos.into()]);
+                } else {
+                    self.ingame_locals
+                        .push(renderer.create_ui_bound_locals(&[world_pos.into()]));
+                }
+
+                self.draw_commands.push(DrawCommand::WorldPos(Some(index)));
+
+                self.draw_primitive(
+                    *content,
+                    offset,
+                    alpha,
+                    renderer,
+                    pool,
+                    Some(view_projection_mat),
+                );
+
+                // Finish the command and return to the interface locals.
+                self.draw_commands.push(match self.current_state {
+                    State::Plain => DrawCommand::plain(self.start..self.mesh.vertices().len()),
+                    State::Image(id) => {
+                        DrawCommand::image(self.start..self.mesh.vertices().len(), id)
+                    },
+                });
+                self.start = self.mesh.vertices().len();
+                self.draw_commands.push(DrawCommand::WorldPos(None));
             },
             Primitive::Nothing => {},
         }
@@ -843,7 +958,7 @@ impl iced::Renderer for IcedRenderer {
         (base_primitive, base_interaction): Self::Output,
         (overlay_primitive, overlay_interaction): Self::Output,
         overlay_bounds: iced::Rectangle,
-    ) -> Self::Output {
+    ) -> <Self as iced::Renderer>::Output {
         span!(_guard, "overlay", "IcedRenderer::overlay");
         (
             Primitive::Group {

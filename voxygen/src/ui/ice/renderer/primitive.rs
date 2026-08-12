@@ -38,5 +38,14 @@ pub enum Primitive {
         alpha: f32,
         content: Box<Primitive>,
     },
+    // Content anchored at a 3D world position (nametags, floaters, aim markers).
+    // The renderer projects `pos` with the view-projection matrix and culls the
+    // content when it is behind the camera or outside the frustum.
+    WorldPos {
+        pos: vek::Vec3<f32>,
+        // Size of the content in UI coordinates, used for frustum culling.
+        dims: vek::Vec2<f32>,
+        content: Box<Primitive>,
+    },
     Nothing,
 }

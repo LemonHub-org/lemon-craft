@@ -197,6 +197,7 @@ impl PlayState for ServerInfoState {
             global_state.window.renderer_mut(),
             None,
             &mut global_state.clipboard,
+            None,
         );
 
         #[expect(clippy::never_loop)] // TODO: Remove when more message types are added

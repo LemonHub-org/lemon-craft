@@ -1339,6 +1339,9 @@ pub struct Hud {
 }
 
 impl Hud {
+    /// Read access to the hotbar state (selected slot, slot contents).
+    pub fn hotbar(&self) -> &hotbar::State { &self.hotbar }
+
     pub fn new(
         global_state: &mut GlobalState,
         persisted_state: Rc<RefCell<PersistedHudState>>,

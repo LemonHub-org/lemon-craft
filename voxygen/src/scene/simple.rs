@@ -281,6 +281,7 @@ impl Scene {
             0,
             BlockKind::Air,
             None,
+            [[0.0; 4]; 16],
             scene_data.gamma,
             scene_data.exposure,
             (Vec3::zero(), -1000.0),

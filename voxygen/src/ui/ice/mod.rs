@@ -9,6 +9,11 @@ pub use cache::{Font, FontId, RawFont, load_font};
 pub use graphic::{Id, Rotation};
 pub use iced::Event;
 pub use renderer::{IcedRenderer, style};
+pub use widget::{
+    ContentSize, Continuous, Discrete, DragManager, ImageFrame, ImageSlider, ImageStates,
+    ItemTooltip, ItemTooltipManager, OutlinedText, RadioList, RichText, Slot, SlotKey, SlotMaker,
+    StatLine, SumSlot, ToggleButton, WithItemTooltip, WorldAnchor,
+};
 pub use winit::{Clipboard, window_event};
 
 use super::{
@@ -141,6 +146,7 @@ impl IcedUi {
         renderer: &mut Renderer,
         pool: Option<&SlowJobPool>,
         clipboard: &mut Clipboard,
+        view_projection_mat: Option<Mat4<f32>>,
     ) -> (Vec<M>, mouse::Interaction) {
         span!(_guard, "maintain", "IcedUi::maintain");
         // There could have been a series of resizes that put us back at the original
@@ -207,7 +213,8 @@ impl IcedUi {
 
         self.cache = Some(user_interface.into_cache());
 
-        self.renderer.draw(primitive, renderer, pool);
+        self.renderer
+            .draw(primitive, renderer, pool, view_projection_mat);
 
         (messages, mouse_interaction)
     }

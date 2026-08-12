@@ -2197,6 +2197,7 @@ impl CharSelectionUi {
             global_state.window.renderer_mut(),
             None,
             &mut global_state.clipboard,
+            None,
         );
 
         if self.enter_pressed {

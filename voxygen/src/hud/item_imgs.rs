@@ -6,12 +6,14 @@ use common::{
     assets::{AssetCombined, AssetExt, AssetHandle, DotVox, Image, ReloadWatcher, Ron},
     comp::item::item_key::ItemKey,
     figure::Segment,
+    terrain::BlockKind,
 };
 use conrod_core::image::Id;
 use hashbrown::HashMap;
-use image::DynamicImage;
+use image::{DynamicImage, RgbaImage};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use strum::IntoEnumIterator;
 use tracing::{error, warn};
 use vek::*;
 
@@ -89,7 +91,7 @@ pub struct ItemImgs {
 impl ItemImgs {
     pub fn new(ui: &mut Ui, not_found: Id) -> Self {
         let manifest = ItemImagesSpec::load_expect_combined_static("voxygen.item_image_manifest");
-        let map = manifest
+        let mut map = manifest
             .read()
             .0
             .iter()
@@ -97,7 +99,22 @@ impl ItemImgs {
             // image id for both, although this does interfere with the current hot-reloading
             // strategy
             .map(|(kind, spec)| (kind.clone(), ui.add_graphic(spec.create_graphic())))
-            .collect();
+            .collect::<HashMap<_, _>>();
+        // Block items have no image asset; render a solid square in the block's
+        // default color instead.
+        for kind in BlockKind::iter().filter(|k| k.is_terrain_breakable()) {
+            let Some(item_id) = kind.item_id() else {
+                continue;
+            };
+            let color = kind.default_color();
+            let img = DynamicImage::ImageRgba8(RgbaImage::from_pixel(
+                64,
+                64,
+                image::Rgba([color.r, color.g, color.b, 255]),
+            ));
+            map.entry(ItemKey::Simple(format!("common.items.blocks.{}", item_id)))
+                .or_insert_with(|| ui.add_graphic(Graphic::Image(Arc::new(img), None)));
+        }
 
         Self {
             map,

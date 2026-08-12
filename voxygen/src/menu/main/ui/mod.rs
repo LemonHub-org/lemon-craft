@@ -743,6 +743,7 @@ impl MainMenuUi {
             global_state.window.renderer_mut(),
             None,
             &mut global_state.clipboard,
+            None,
         );
 
         messages.into_iter().for_each(|message| {
