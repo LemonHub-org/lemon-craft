@@ -67,6 +67,10 @@ pub struct Globals {
     shadow_proj_factors: [f32; 4],
     medium: [u32; 4],
     select_pos: [i32; 4],
+    /// Up to 16 blocks currently showing break cracks, as
+    /// (x, y, z, crack_strength 0..1). Shared with the terrain shader which
+    /// renders the crack overlay.
+    crack_blocks: [[f32; 4]; 16],
     gamma_exposure: [f32; 4],
     last_lightning: [f32; 4],
     wind_vel: [f32; 2],
@@ -119,6 +123,7 @@ impl Globals {
         directed_light_count: usize,
         medium: BlockKind,
         select_pos: Option<Vec3<i32>>,
+        crack_blocks: [[f32; 4]; 16],
         gamma: f32,
         exposure: f32,
         last_lightning: (Vec3<f32>, f64),
@@ -189,6 +194,7 @@ impl Globals {
                 .map(|sp| Vec4::from(sp) + Vec4::unit_w())
                 .unwrap_or_else(Vec4::zero)
                 .into_array(),
+            crack_blocks,
             gamma_exposure: [gamma, exposure, 0.0, 0.0],
             last_lightning: last_lightning
                 .0
@@ -227,6 +233,7 @@ impl Default for Globals {
             0,
             BlockKind::Air,
             None,
+            [[0.0; 4]; 16],
             1.0,
             1.0,
             (Vec3::zero(), -1000.0),

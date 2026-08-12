@@ -117,6 +117,9 @@ pub struct Scene {
     /// chunk.
     map_bounds: Vec2<f32>,
     select_pos: Option<Vec3<i32>>,
+    /// Break progress of blocks currently being mined (survival building).
+    /// Maps block position to (crack stage 0..=4, time of last update).
+    crack_blocks: HashMap<Vec3<i32>, (u8, f64)>,
     light_data: Vec<Light>,
 
     particle_mgr: ParticleMgr,
@@ -362,6 +365,7 @@ impl Scene {
                 client.world_data().max_chunk_alt(),
             ),
             select_pos: None,
+            crack_blocks: HashMap::default(),
             light_data: Vec::new(),
             particle_mgr: ParticleMgr::new(renderer),
             trail_mgr: TrailMgr::default(),
@@ -490,6 +494,13 @@ impl Scene {
         match outcome {
             Outcome::Lightning { pos } => {
                 self.last_lightning = Some((*pos, scene_data.state.get_time()));
+            },
+            Outcome::DamagedBlock { pos, stage, .. } => {
+                self.crack_blocks
+                    .insert(*pos, (*stage, scene_data.state.get_time()));
+            },
+            Outcome::BreakBlock { pos, .. } => {
+                self.crack_blocks.remove(pos);
             },
             Outcome::Explosion {
                 pos,
@@ -975,6 +986,19 @@ impl Scene {
             };
 
         // Update global constants.
+        let now = scene_data.state.get_time();
+        self.crack_blocks.retain(|_, (_, last)| now - *last < 6.0);
+        let mut crack_blocks = [[0.0; 4]; 16];
+        for (slot, (pos, (stage, last))) in self.crack_blocks.iter().take(16).enumerate() {
+            let age = now - *last;
+            let fade = if age > 5.0 { (6.0 - age).max(0.0) } else { 1.0 };
+            crack_blocks[slot] = [
+                pos.x as f32,
+                pos.y as f32,
+                pos.z as f32,
+                (*stage as f32 / 4.0) * fade as f32,
+            ];
+        }
         renderer.update_consts(&mut self.data.globals, &[Globals::new(
             view_mat,
             proj_mat,
@@ -1002,6 +1026,7 @@ impl Scene {
                 .map(|b| b.kind())
                 .unwrap_or(BlockKind::Air),
             self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
+            crack_blocks,
             scene_data.gamma,
             scene_data.exposure,
             self.last_lightning.unwrap_or((Vec3::zero(), -1000.0)),

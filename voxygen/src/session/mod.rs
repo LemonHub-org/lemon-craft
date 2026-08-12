@@ -5,7 +5,7 @@ mod target;
 use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, time::Duration};
 
 use itertools::Itertools;
-#[cfg(not(target_os = "macos"))]
+#[cfg(all(not(target_os = "macos"), not(target_arch = "wasm32")))]
 use mumble_link::SharedLink;
 use ordered_float::OrderedFloat;
 use specs::WorldExt;
@@ -20,7 +20,7 @@ use common::{
         InventoryUpdateEvent, Pos, PresenceKind, Stats, UtteranceKind, Vel,
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
-        item::{ItemDesc, tool::ToolKind},
+        item::{ItemDesc, ItemKind, tool::ToolKind},
     },
     consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
@@ -118,7 +118,7 @@ pub struct SessionState {
     pub(crate) selected_entity: Option<(specs::Entity, std::time::Instant)>,
     pub(crate) viewpoint_entity: Option<specs::Entity>,
     interactables: interactable::Interactables,
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(all(not(target_os = "macos"), not(target_arch = "wasm32")))]
     mumble_link: SharedLink,
     hitboxes: HashMap<specs::Entity, DebugShapeId>,
     lines: PlayerDebugLines,
@@ -149,7 +149,7 @@ impl SessionState {
         client
             .borrow_mut()
             .set_lod_distance(global_state.settings.graphics.lod_distance);
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(all(not(target_os = "macos"), not(target_arch = "wasm32")))]
         let mut mumble_link = SharedLink::new(
             crate::ui::brand::MUMBLE_PLUGIN_NAME,
             crate::ui::brand::MUMBLE_PLUGIN_DESCRIPTION,
@@ -160,7 +160,7 @@ impl SessionState {
             client.request_lossy_terrain_compression(
                 global_state.settings.networking.lossy_terrain_compression,
             );
-            #[cfg(not(target_os = "macos"))]
+            #[cfg(all(not(target_os = "macos"), not(target_arch = "wasm32")))]
             if let Some(uid) = client.uid() {
                 let identiy = if let Some(info) = client.player_list().get(&uid) {
                     format!("{}-{}", info.player_alias, uid)
@@ -196,7 +196,7 @@ impl SessionState {
             selected_entity: None,
             viewpoint_entity: None,
             interactables: Default::default(),
-            #[cfg(not(target_os = "macos"))]
+            #[cfg(all(not(target_os = "macos"), not(target_arch = "wasm32")))]
             mumble_link,
             hitboxes: HashMap::new(),
             metadata,
@@ -267,7 +267,7 @@ impl SessionState {
         self.scene.maintain_debug_vectors(&client, &mut self.lines);
         let pos = client.position().unwrap_or_default();
 
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(all(not(target_os = "macos"), not(target_arch = "wasm32")))]
         {
             // Update mumble positional audio
             let ori = client
@@ -663,6 +663,29 @@ impl PlayState for SessionState {
                 .get(player_entity)
                 .map_or_else(|| false, |cb| cb.enabled);
 
+            // The block item in the currently selected hotbar slot, if any.
+            // Used to place blocks in survival building mode.
+            let selected_block = self
+                .hud
+                .hotbar()
+                .get(self.hud.hotbar().currently_selected_slot)
+                .and_then(|contents| match contents {
+                    crate::hud::HotbarSlotContents::Inventory(item_hash, _) => {
+                        let inventory = client.inventories();
+                        inventory.get(player_entity).and_then(|inv| {
+                            inv.get_by_hash(item_hash)
+                                .and_then(|item| match &*item.kind() {
+                                    ItemKind::Block(kind) => Some(Block::new(
+                                        *kind,
+                                        item.block_color().unwrap_or_else(|| kind.default_color()),
+                                    )),
+                                    _ => None,
+                                })
+                        })
+                    },
+                    _ => None,
+                });
+
             let active_mine_tool: Option<ToolKind> = if client.is_wielding() == Some(true) {
                 client
                     .inventories()
@@ -681,6 +704,7 @@ impl PlayState for SessionState {
                     cam_pos,
                     cam_dir,
                     can_build,
+                    selected_block,
                     active_mine_tool,
                     self.viewpoint_entity().0,
                 );
@@ -787,9 +811,13 @@ impl PlayState for SessionState {
                             GameInput::Primary => {
                                 self.walking_speed = false;
                                 let mut client = self.client.borrow_mut();
-                                // Building inputs take precedence... but only if there's an active
-                                // building target.
-                                if let Some(build_target) = build_target.filter(|_| state) {
+                                // Creative build mode removes blocks with the primary
+                                // action. In survival building the build target is a
+                                // *placement* target (secondary action); primary goes
+                                // through the normal attack/mine flow instead.
+                                if let Some(build_target) =
+                                    build_target.filter(|_| state).filter(|_| can_build)
+                                {
                                     client.remove_block(build_target.position_int());
                                 } else {
                                     client.handle_input(
@@ -805,10 +833,18 @@ impl PlayState for SessionState {
                                 let mut client = self.client.borrow_mut();
                                 if let Some(build_target) = build_target.filter(|_| state) {
                                     let selected_pos = build_target.kind.0;
-                                    client.place_block(
-                                        selected_pos.map(|p| p.floor() as i32),
-                                        self.selected_block,
-                                    );
+                                    // Creative build mode places the copied block;
+                                    // survival building places the block item held in
+                                    // the selected hotbar slot.
+                                    let block = if can_build {
+                                        self.selected_block
+                                    } else if let Some(block) = selected_block {
+                                        block
+                                    } else {
+                                        self.selected_block
+                                    };
+                                    client
+                                        .place_block(selected_pos.map(|p| p.floor() as i32), block);
                                 } else {
                                     client.handle_input(
                                         InputKind::Secondary,

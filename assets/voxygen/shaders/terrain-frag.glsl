@@ -318,6 +318,33 @@ void main() {
 
     float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 1.0 : 0.0;
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);
+
+    // Break cracks overlay (survival building): progressively darken and
+    // mottle terrain blocks that are being mined, matching the server's
+    // crack stage.
+    vec3 crack_block_pos = floor(f_pos - f_norm * 0.5);
+    float f_crack = 0.0;
+    for (int i = 0; i < 16; i++) {
+        if (crack_blocks[i].w > 0.0 && crack_blocks[i].xyz == crack_block_pos) {
+            f_crack = crack_blocks[i].w;
+            break;
+        }
+    }
+    if (f_crack > 0.0) {
+        bool crackable = f_kind == BLOCK_ROCK || f_kind == BLOCK_WEAK_ROCK
+            || f_kind == BLOCK_GRASS || f_kind == BLOCK_SNOW
+            || f_kind == BLOCK_EARTH || f_kind == BLOCK_SAND
+            || f_kind == BLOCK_WOOD || f_kind == BLOCK_LEAVES
+            || f_kind == BLOCK_ICE;
+        if (crackable) {
+            // Crack-like web along the block faces plus progressive mottling.
+            float web = abs(noise_3d(crack_block_pos * 3.0 + fract(f_pos * 6.0)) - 0.5);
+            float cracks = smoothstep(0.2, 0.45, web) * f_crack;
+            float mottle = noise_3d(crack_block_pos * 2.0 + 0.5);
+            float darken = mix(0.1, 0.5, f_crack) * (0.6 + 0.4 * mottle);
+            surf_color *= max(1.0 - darken - cracks * 0.5, 0.25);
+        }
+    }
     
     #ifdef EXPERIMENTAL_SHOWCHUNKBORDERS
     float border_scale = 0.0001 * distance(cam_pos.xyz, f_pos);

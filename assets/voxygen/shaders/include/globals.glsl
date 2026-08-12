@@ -23,6 +23,9 @@ layout(std140, set = 0, binding = 0) uniform u_globals {
     vec4 shadow_proj_factors;
     uvec4 medium;
     ivec4 select_pos;
+    // Up to 16 blocks currently showing break cracks:
+    // xyz = block position, w = crack strength (0..1).
+    vec4 crack_blocks[16];
     vec4 gamma_exposure;
     vec4 last_lightning;
     vec2 wind_vel;

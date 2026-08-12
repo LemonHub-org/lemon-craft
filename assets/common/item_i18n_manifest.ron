@@ -3553,6 +3553,33 @@
             "common.items.crafting_ing.rock",
         ): "common-items-crafting_ing-rock",
         Simple(
+            "common.items.blocks.rock",
+        ): "common-items-blocks-rock",
+        Simple(
+            "common.items.blocks.weak_rock",
+        ): "common-items-blocks-weak_rock",
+        Simple(
+            "common.items.blocks.grass",
+        ): "common-items-blocks-grass",
+        Simple(
+            "common.items.blocks.snow",
+        ): "common-items-blocks-snow",
+        Simple(
+            "common.items.blocks.earth",
+        ): "common-items-blocks-earth",
+        Simple(
+            "common.items.blocks.sand",
+        ): "common-items-blocks-sand",
+        Simple(
+            "common.items.blocks.wood",
+        ): "common-items-blocks-wood",
+        Simple(
+            "common.items.blocks.leaves",
+        ): "common-items-blocks-leaves",
+        Simple(
+            "common.items.blocks.ice",
+        ): "common-items-blocks-ice",
+        Simple(
             "common.items.crafting_ing.seashells",
         ): "sprite-seashells-shell-0",
         Simple(

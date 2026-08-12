@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Grass Block",
+    legacy_description: "A patch of earth topped with fresh grass.",
+    kind: Block(Grass),
+    quality: Low,
+    tags: [],
+)

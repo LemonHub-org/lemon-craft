@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Stone Block",
+    legacy_description: "A sturdy block of stone. Great for building foundations.",
+    kind: Block(Rock),
+    quality: Low,
+    tags: [],
+)

@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Wood Block",
+    legacy_description: "A sturdy block of timber. The backbone of any building.",
+    kind: Block(Wood),
+    quality: Low,
+    tags: [],
+)

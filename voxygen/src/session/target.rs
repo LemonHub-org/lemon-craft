@@ -7,6 +7,7 @@ use common::{
     consts::{MAX_INTERACT_RANGE, MAX_PICKUP_RANGE},
     link::Is,
     mounting::{Mount, Rider},
+    terrain::Block,
     uid::Uid,
     util::{
         find_dist::{Cylinder, FindDist},
@@ -51,6 +52,7 @@ pub(super) fn targets_under_cursor(
     cam_pos: Vec3<f32>,
     cam_dir: Vec3<f32>,
     can_build: bool,
+    selected_block: Option<Block>,
     active_mine_tool: Option<ToolKind>,
     viewpoint_entity: specs::Entity,
 ) -> (
@@ -107,7 +109,19 @@ pub(super) fn targets_under_cursor(
         .filter(|(d, _)| player_pos.distance(break_tgt_pos(*d)) < MAX_INTERACT_RANGE);
     let mine_cast = Some(ray.until(|b| b.is_solid() || b.mine_tool().is_some()).cast())
         // Mining is limited by the target block being mineable with the active mining tool...
-        .filter(|(_, b)| matches!(b, Ok(Some(b)) if b.mine_tool().zip(active_mine_tool).map_or(false, |(a, b)| a == b)))
+        // ...or by being a terrain block breakable with a pick/shovel (survival building).
+        .filter(|(_, b)| {
+            matches!(b, Ok(Some(b)) if {
+                let mineable_with_tool = b
+                    .mine_tool()
+                    .zip(active_mine_tool)
+                    .map_or(false, |(a, b)| a == b);
+                let terrain_with_tool = active_mine_tool
+                    .is_some_and(|t| matches!(t, ToolKind::Pick | ToolKind::Shovel))
+                    && b.is_terrain_breakable();
+                mineable_with_tool || terrain_with_tool
+            })
+        })
         // ...and by the distance to the player's eye position
         .filter(|(d, _)| eye_pos.distance(break_tgt_pos(*d)) < MAX_PICKUP_RANGE);
     let build_cast = Some(ray.until(|b| b.is_solid()).cast())
@@ -217,7 +231,12 @@ pub(super) fn targets_under_cursor(
         position: break_tgt_pos(d),
     });
 
-    let build_target = if let (true, Some((d, _))) = (can_build, build_cast) {
+    let build_target = if (can_build || selected_block.is_some())
+        && let Some((d, _)) = build_cast
+        // Creative build mode allows a far build range; survival placement is
+        // limited to pickup reach (matches the server-side validation).
+        && (can_build || d < MAX_PICKUP_RANGE)
+    {
         Some(Target {
             kind: Build(place_tgt_pos(d)),
             position: break_tgt_pos(d),

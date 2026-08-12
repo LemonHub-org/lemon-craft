@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Leaves Block",
+    legacy_description: "A leafy block, light and easy to break.",
+    kind: Block(Leaves),
+    quality: Low,
+    tags: [],
+)

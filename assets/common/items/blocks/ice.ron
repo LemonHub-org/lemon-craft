@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Ice Block",
+    legacy_description: "A block of solid ice. Slippery when wet.",
+    kind: Block(Ice),
+    quality: Low,
+    tags: [],
+)

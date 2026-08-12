@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Sand Block",
+    legacy_description: "A block of fine, golden sand.",
+    kind: Block(Sand),
+    quality: Low,
+    tags: [],
+)

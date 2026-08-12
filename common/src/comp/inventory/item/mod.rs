@@ -14,7 +14,7 @@ use crate::{
     lottery::LootSpec,
     recipe::RecipeInput,
     resources::ProgramTime,
-    terrain::{Block, sprite::SpriteCfg},
+    terrain::{Block, BlockKind, sprite::SpriteCfg},
 };
 use common_i18n::Content;
 use core::{
@@ -381,6 +381,9 @@ pub enum ItemKind {
         recipes: Vec<String>,
     },
     Quest,
+    /// A placeable terrain block. `BlockKind` is baked into the item
+    /// definition; the per-item color lives in `Item::block_color`.
+    Block(BlockKind),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -421,6 +424,7 @@ impl ItemKind {
             ItemKind::TagExamples { item_ids } => format!("TagExamples: {:?}", item_ids),
             ItemKind::RecipeGroup { .. } => String::from("Recipes:"),
             ItemKind::Quest => String::from("Quest:"),
+            ItemKind::Block(kind) => format!("Block: {}", kind),
         }
     }
 
@@ -436,7 +440,8 @@ impl ItemKind {
             | ItemKind::Utility { .. }
             | ItemKind::Ingredient { .. }
             | ItemKind::TagExamples { .. }
-            | ItemKind::RecipeGroup { .. } => false,
+            | ItemKind::RecipeGroup { .. }
+            | ItemKind::Block(_) => false,
         }
     }
 }
@@ -490,6 +495,13 @@ pub struct Item {
     /// converted into the items durability. Only tracked for tools and armor
     /// currently.
     durability_lost: Option<u32>,
+    /// Color of the block this item represents, captured when the block was
+    /// broken. `None` for non-block items and for block items that were not
+    /// obtained by breaking a block (they fall back to the kind's default
+    /// color when placed). Included in hashing/equality so differently
+    /// colored blocks do not merge.
+    #[serde(default)]
+    block_color: Option<Rgb<u8>>,
 }
 
 /// Newtype around [`Item`] used for frontend events to prevent it accidentally
@@ -534,6 +546,7 @@ impl Hash for Item {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.item_definition_id().hash(state);
         self.components.iter().for_each(|comp| comp.hash(state));
+        self.block_color.hash(state);
     }
 }
 
@@ -877,6 +890,7 @@ impl ItemDef {
                 | ItemKind::Quest
                 | ItemKind::Ingredient { .. }
                 | ItemKind::Utility { .. }
+                | ItemKind::Block(_)
                 | ItemKind::Tool(Tool {
                     kind: ToolKind::Throwable,
                     ..
@@ -941,6 +955,7 @@ impl PartialEq for Item {
             (ItemBase::Modular(our_base), ItemBase::Modular(other_base)) => our_base == other_base,
             _ => false,
         }) && self.components() == other.components()
+            && self.block_color == other.block_color
     }
 }
 
@@ -1023,6 +1038,7 @@ impl Item {
             item_config: None,
             hash: 0,
             durability_lost: None,
+            block_color: None,
         };
         item.durability_lost = item.has_durability().then_some(0);
         item.update_item_state(ability_map, msm);
@@ -1420,6 +1436,25 @@ impl Item {
             block.get_sprite()?.default_loot_spec()??.to_items()
         }
     }
+
+    /// Construct the block item for a terrain-breakable block, preserving the
+    /// block's color. Returns `None` for blocks that are not terrain
+    /// breakable (resource sprites etc. keep their loot-based drops).
+    pub fn block_item(
+        block: Block,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Option<Self> {
+        let item_id = block.kind().item_id()?;
+        let mut item = Item::new_from_asset_expect(&format!("common.items.blocks.{}", item_id));
+        item.block_color = block.get_color();
+        item.update_item_state(ability_map, msm);
+        Some(item)
+    }
+
+    /// The color of the block this item represents, if it was broken from the
+    /// world. Used when placing the block and when rendering the item icon.
+    pub fn block_color(&self) -> Option<Rgb<u8>> { self.block_color }
 
     pub fn ability_spec(&self) -> Option<Cow<'_, AbilitySpec>> {
         match &self.item_base {
@@ -2153,6 +2188,7 @@ impl From<&ItemDefinitionId<'_>> for ItemDefinitionIdOwned {
 mod tests {
     use super::*;
     use hashbrown::HashSet;
+    use strum::IntoEnumIterator;
 
     #[test]
     fn test_assets_items() {
@@ -2227,5 +2263,67 @@ mod tests {
         if !errs.is_empty() {
             panic!("item i18n manifest missing fragment-id for following items {errs:#?}")
         }
+    }
+
+    #[test]
+    fn test_block_item_roundtrip() {
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
+        let color = Rgb::new(12, 34, 56);
+        let block = Block::new(BlockKind::Earth, color);
+
+        let item = Item::block_item(block, ability_map, msm)
+            .expect("terrain-breakable block should produce a block item");
+        assert_eq!(item.block_color(), Some(color));
+        assert!(matches!(&*item.kind(), ItemKind::Block(BlockKind::Earth)));
+        assert!(item.is_stackable());
+
+        // Non-breakable blocks have no block item.
+        assert!(Item::block_item(Block::new(BlockKind::Lava, color), ability_map, msm).is_none());
+    }
+
+    #[test]
+    fn test_block_item_color_separates_stacks() {
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
+        let a = Item::block_item(
+            Block::new(BlockKind::Sand, Rgb::new(1, 2, 3)),
+            ability_map,
+            msm,
+        )
+        .unwrap();
+        let b = Item::block_item(
+            Block::new(BlockKind::Sand, Rgb::new(4, 5, 6)),
+            ability_map,
+            msm,
+        )
+        .unwrap();
+        let c = Item::block_item(
+            Block::new(BlockKind::Sand, Rgb::new(1, 2, 3)),
+            ability_map,
+            msm,
+        )
+        .unwrap();
+
+        assert_ne!(a, b, "differently colored blocks must not merge");
+        assert_ne!(a.item_hash(), b.item_hash());
+        assert_eq!(a, c, "identically colored blocks should merge");
+        assert_eq!(a.item_hash(), c.item_hash());
+    }
+
+    #[test]
+    fn test_block_kind_item_mapping() {
+        for kind in BlockKind::iter().filter(|k| k.is_terrain_breakable()) {
+            assert!(
+                kind.item_id().is_some(),
+                "breakable kind {kind:?} must have a block item id"
+            );
+        }
+        assert!(BlockKind::Air.item_id().is_none());
+        assert!(BlockKind::Water.item_id().is_none());
+        assert!(!BlockKind::Air.is_terrain_breakable());
+        assert!(BlockKind::Rock.is_terrain_breakable());
+        assert!(!BlockKind::GlowingRock.is_terrain_breakable());
+        assert!(!BlockKind::ArtSnow.is_terrain_breakable());
     }
 }

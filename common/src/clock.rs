@@ -100,6 +100,7 @@ impl Clock {
 
         // Give the tick thread realtime priority to minimise stuttering. Don't do this
         // all the time to avoid upsetting the scheduler.
+        #[cfg(not(target_arch = "wasm32"))]
         if self.tick == 0
         /* .is_multiple_of(30) */
         {

@@ -116,6 +116,65 @@ impl BlockKind {
                 | BlockKind::Sand
         )
     }
+
+    /// Determine whether the block can be broken and placed as part of the
+    /// survival building mechanic. Breaking such a block drops the block
+    /// itself (with its color) as an item, and placing one consumes the item.
+    ///
+    /// Fluids, air, decorative kinds (ArtSnow/ArtLeaves), and glowing rocks
+    /// are excluded.
+    #[inline]
+    pub const fn is_terrain_breakable(&self) -> bool {
+        matches!(
+            self,
+            BlockKind::Rock
+                | BlockKind::WeakRock
+                | BlockKind::Grass
+                | BlockKind::Snow
+                | BlockKind::Earth
+                | BlockKind::Sand
+                | BlockKind::Wood
+                | BlockKind::Leaves
+                | BlockKind::Ice
+        )
+    }
+
+    /// Default color used when placing a block (or rendering a block item
+    /// icon) without a specific color, e.g. when the item was obtained from
+    /// a command rather than by breaking a block.
+    #[inline]
+    pub const fn default_color(&self) -> Rgb<u8> {
+        match self {
+            BlockKind::Rock | BlockKind::WeakRock => Rgb::new(110, 105, 100),
+            BlockKind::Grass => Rgb::new(80, 140, 60),
+            BlockKind::Snow => Rgb::new(235, 240, 245),
+            BlockKind::Earth => Rgb::new(100, 75, 55),
+            BlockKind::Sand => Rgb::new(210, 190, 140),
+            BlockKind::Wood => Rgb::new(110, 85, 50),
+            BlockKind::Leaves => Rgb::new(60, 120, 50),
+            BlockKind::Ice => Rgb::new(180, 210, 230),
+            _ => Rgb::new(255, 255, 255),
+        }
+    }
+
+    /// Snake_case identifier used to build the item definition id
+    /// (`common.items.blocks.<id>`) for the block item of this kind. Only
+    /// terrain-breakable kinds have block items; anything else returns `None`.
+    #[inline]
+    pub const fn item_id(&self) -> Option<&'static str> {
+        Some(match self {
+            BlockKind::Rock => "rock",
+            BlockKind::WeakRock => "weak_rock",
+            BlockKind::Grass => "grass",
+            BlockKind::Snow => "snow",
+            BlockKind::Earth => "earth",
+            BlockKind::Sand => "sand",
+            BlockKind::Wood => "wood",
+            BlockKind::Leaves => "leaves",
+            BlockKind::Ice => "ice",
+            _ => return None,
+        })
+    }
 }
 
 /// # Format

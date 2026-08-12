@@ -12,7 +12,7 @@ use common::{
         self, InventoryUpdateEvent,
         agent::{AgentEvent, Sound, SoundKind},
         inventory::slot::EquipSlot,
-        item::{MaterialStatManifest, flatten_counted_items},
+        item::{MaterialStatManifest, ToolKind, flatten_counted_items},
         tool::AbilityMap,
     },
     consts::{MAX_INTERACT_RANGE, MAX_NPCINTERACT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
@@ -265,6 +265,7 @@ lazy_static! {
 impl ServerEvent for MineBlockEvent {
     type SystemData<'a> = (
         WriteExpect<'a, BlockChange>,
+        WriteExpect<'a, crate::block_damage::BlockDamage>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, MaterialStatManifest>,
         ReadExpect<'a, AbilityMap>,
@@ -275,12 +276,14 @@ impl ServerEvent for MineBlockEvent {
         ReadExpect<'a, Time>,
         WriteStorage<'a, comp::SkillSet>,
         ReadStorage<'a, Uid>,
+        crate::sys::msg::in_game::TerrainPersistenceData<'a>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
         (
             mut block_change,
+            mut block_damage,
             terrain,
             msm,
             ability_map,
@@ -291,8 +294,13 @@ impl ServerEvent for MineBlockEvent {
             time,
             mut skill_sets,
             uids,
+            mut terrain_persistence,
         ): Self::SystemData<'_>,
     ) {
+        // Only consumed when persistence is enabled; keep the binding used
+        // otherwise.
+        #[cfg(not(feature = "persistent_world"))]
+        let _ = &mut terrain_persistence;
         use rand::RngExt;
         let mut rng = rand::rng();
         let mut create_item_drop_emitter = create_item_drop_events.emitter();
@@ -301,6 +309,61 @@ impl ServerEvent for MineBlockEvent {
         for ev in events {
             if block_change.can_set_block(ev.pos) {
                 let block = terrain.get(ev.pos).ok().copied();
+                if let Some(block) = block.filter(|b| b.is_terrain_breakable()) {
+                    // Survival building: terrain blocks accumulate break damage
+                    // in the server-side registry (filled blocks cannot store
+                    // sprite attributes) and drop the block itself (with its
+                    // color) when broken.
+                    if !matches!(ev.tool, Some(ToolKind::Pick | ToolKind::Shovel)) {
+                        continue;
+                    }
+                    let Some(progress) = block_damage.hit(ev.pos, program_time.0, block.kind())
+                    else {
+                        continue;
+                    };
+                    block_damage.prune_expired(program_time.0);
+
+                    sound_event_emitter.emit(SoundEvent {
+                        sound: Sound::new(SoundKind::Mine, ev.pos.as_(), 20.0, time.0),
+                    });
+
+                    if progress.broken {
+                        let color = block.get_color();
+                        let vacant = block.into_vacant();
+                        if let Some(item) = comp::Item::block_item(block, &ability_map, &msm) {
+                            create_item_drop_emitter.emit(CreateItemDropEvent {
+                                pos: comp::Pos(ev.pos.map(|e| e as f32) + Vec3::broadcast(0.5)),
+                                vel: comp::Vel(
+                                    Vec2::unit_x()
+                                        .rotated_z(rng.random::<f32>() * PI * 2.0)
+                                        .mul(4.0)
+                                        .with_z(rng.random_range(5.0..10.0)),
+                                ),
+                                ori: comp::Ori::from(Dir::random_2d(&mut rng)),
+                                item: comp::PickupItem::new(item, *program_time, false),
+                                source: None,
+                            });
+                        }
+                        block_change.set(ev.pos, vacant);
+                        #[cfg(feature = "persistent_world")]
+                        if let Some(terrain_persistence) = terrain_persistence.as_mut() {
+                            terrain_persistence.set_block(ev.pos, vacant);
+                        }
+                        outcome_emitter.emit(Outcome::BreakBlock {
+                            pos: ev.pos,
+                            tool: ev.tool,
+                            color,
+                        });
+                    } else {
+                        outcome_emitter.emit(Outcome::DamagedBlock {
+                            pos: ev.pos,
+                            stage_changed: progress.stage_changed,
+                            tool: ev.tool,
+                            stage: progress.stage,
+                        });
+                    }
+                    continue;
+                }
                 if let Some(mut block) =
                     block.filter(|b| b.mine_tool().is_some_and(|t| Some(t) == ev.tool))
                 {
@@ -450,6 +513,11 @@ impl ServerEvent for MineBlockEvent {
                             pos: ev.pos,
                             stage_changed,
                             tool: ev.tool,
+                            stage: damage
+                                .zip(sprite.and_then(|s| s.required_mine_damage()))
+                                .map_or(0, |(damage, required)| {
+                                    crate::block_damage::crack_stage(damage, required)
+                                }),
                         }
                     });
 

@@ -76,6 +76,10 @@ pub enum Outcome {
         pos: Vec3<i32>,
         tool: Option<ToolKind>,
         stage_changed: bool,
+        /// Absolute crack stage (0..=4) of the damaged block, used by the
+        /// client to render break progress on terrain blocks.
+        #[serde(default)]
+        stage: u8,
     },
     SummonedCreature {
         pos: Vec3<f32>,

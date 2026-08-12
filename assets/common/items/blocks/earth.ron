@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Earth Block",
+    legacy_description: "A block of rich, dark earth.",
+    kind: Block(Earth),
+    quality: Low,
+    tags: [],
+)

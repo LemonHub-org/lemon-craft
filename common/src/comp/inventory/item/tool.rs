@@ -675,6 +675,11 @@ impl AbilityMap {
     pub fn load() -> AssetHandle<Self> {
         Self::load_expect("common.abilities.ability_set_manifest")
     }
+
+    #[doc(hidden)]
+    /// Needed for benchmarks to run without loading the actual ability
+    /// manifest from assets.
+    pub fn with_empty() -> Self { Self(HashMap::new()) }
 }
 
 impl<T> AbilityMap<T> {

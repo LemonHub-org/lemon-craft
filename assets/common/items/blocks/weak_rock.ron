@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Weak Stone Block",
+    legacy_description: "A crumbly block of brittle stone. Breaks apart easily.",
+    kind: Block(WeakRock),
+    quality: Low,
+    tags: [],
+)
