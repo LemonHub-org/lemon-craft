@@ -37,6 +37,10 @@ impl SpatialGrid {
         }
     }
 
+    /// A default-sized grid; the cell sizes are those used for entity-entity
+    /// collisions.
+    pub fn default_entity_grid() -> Self { Self::new(5, 6, 8) }
+
     /// Add an entity at the provided 2d pos into the spatial grid
     pub fn insert(&mut self, pos: Vec2<i32>, radius: u32, entity: specs::Entity) {
         if radius <= self.radius_cutoff {
@@ -106,4 +110,8 @@ impl SpatialGrid {
         self.large_grid.clear();
         self.largest_large_radius = self.radius_cutoff;
     }
+}
+
+impl Default for SpatialGrid {
+    fn default() -> Self { Self::default_entity_grid() }
 }

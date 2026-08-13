@@ -24,6 +24,9 @@ impl<'a, T: Copy + Pod> SubInstances<'a, T> {
 /// Represents a mesh that has been sent to the GPU.
 pub struct Instances<T: Copy + Pod> {
     buf: DynamicBuffer<T>,
+    // Number of valid instances; the buffer may be larger (capacity) so it
+    // can be reused across frames without reallocation.
+    valid_len: usize,
 }
 
 impl<T: Copy + Pod> Instances<T> {
@@ -32,6 +35,7 @@ impl<T: Copy + Pod> Instances<T> {
             // TODO: examine if we have Instances that are not updated (e.g. sprites) and if there
             // would be any gains from separating those out
             buf: DynamicBuffer::new(device, len, wgpu::BufferUsages::VERTEX),
+            valid_len: len,
         }
     }
 
@@ -46,7 +50,16 @@ impl<T: Copy + Pod> Instances<T> {
     }
 
     // TODO: count vs len naming scheme??
-    pub fn count(&self) -> usize { self.buf.len() }
+    pub fn count(&self) -> usize { self.valid_len }
+
+    /// The allocated capacity of the underlying buffer.
+    pub fn capacity(&self) -> usize { self.buf.len() }
+
+    /// Sets the number of valid instances (must not exceed the capacity).
+    pub fn set_valid_len(&mut self, valid_len: usize) {
+        debug_assert!(valid_len <= self.capacity());
+        self.valid_len = valid_len;
+    }
 
     pub fn update(&mut self, queue: &wgpu::Queue, vals: &[T], offset: usize) {
         self.buf.update(queue, vals, offset)

@@ -1394,6 +1394,27 @@ impl Renderer {
         instances
     }
 
+    /// Writes `vals` into a reused instance buffer, growing the buffer first
+    /// when needed, and marks the first `vals.len()` instances as valid.
+    pub fn update_instances<T: Copy + bytemuck::Pod>(
+        &mut self,
+        instances: &mut Instances<T>,
+        vals: &[T],
+    ) {
+        if vals.len() > instances.capacity() {
+            // Grow on demand (2x, with a small minimum) instead of recreating
+            // the buffer every frame.
+            let new_capacity = (vals.len() * 2).max(32).next_power_of_two();
+            let mut new_instances = Instances::new(&self.device, new_capacity);
+            new_instances.update(&self.queue, vals, 0);
+            new_instances.set_valid_len(vals.len());
+            *instances = new_instances;
+        } else {
+            instances.update(&self.queue, vals, 0);
+            instances.set_valid_len(vals.len());
+        }
+    }
+
     /// Ensure that the quad index buffer is large enough for a quad vertex
     /// buffer with this many vertices
     pub(super) fn ensure_sufficient_index_length<V: Vertex>(

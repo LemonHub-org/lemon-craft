@@ -135,8 +135,21 @@ event_emitters! {
 }
 
 /// This system applies forces and calculates new positions and velocities.
-#[derive(Default)]
-pub struct Sys;
+pub struct Sys {
+    // Spatial grids are reused across ticks (cleared and refilled) to avoid
+    // reallocating the cell maps every tick.
+    spatial_grid: SpatialGrid,
+    voxel_collider_spatial_grid: SpatialGrid,
+}
+
+impl Default for Sys {
+    fn default() -> Self {
+        Self {
+            spatial_grid: SpatialGrid::new(5, 6, 8),
+            voxel_collider_spatial_grid: SpatialGrid::new(7, 8, 64),
+        }
+    }
+}
 
 #[derive(SystemData)]
 pub struct PhysicsRead<'a> {
@@ -321,7 +334,7 @@ impl PhysicsData<'_> {
         }
     }
 
-    fn construct_spatial_grid(&mut self) -> SpatialGrid {
+    fn construct_spatial_grid(&mut self, spatial_grid: &mut SpatialGrid) {
         span!(_guard, "Construct spatial grid");
         let &mut PhysicsData {
             ref read,
@@ -332,15 +345,9 @@ impl PhysicsData<'_> {
         // the radius of their bounding sphere for the current frame of movement
         // because the nonmoving entity is what is collided against in the inner
         // loop of the pushback collision code
-        // TODO: maintain frame to frame? (requires handling deletion)
-        // TODO: if not maintaining frame to frame consider counting entities to
-        // preallocate?
         // TODO: assess parallelizing (overhead might dominate here? would need to merge
         // the vecs in each hashmap)
-        let lg2_cell_size = 5;
-        let lg2_large_cell_size = 6;
-        let radius_cutoff = 8;
-        let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
+        spatial_grid.clear();
         for (entity, pos, phys_cache, _, _) in (
             &read.entities,
             &write.positions,
@@ -356,8 +363,6 @@ impl PhysicsData<'_> {
             const POS_TRUNCATION_ERROR: u32 = 1;
             spatial_grid.insert(pos_2d, radius_2d + POS_TRUNCATION_ERROR, entity);
         }
-
-        spatial_grid
     }
 
     fn apply_pushback(&mut self, job: &mut Job<Sys>, spatial_grid: &SpatialGrid) {
@@ -567,7 +572,7 @@ impl PhysicsData<'_> {
         write.physics_metrics.entity_entity_collisions = metrics.entity_entity_collisions;
     }
 
-    fn construct_voxel_collider_spatial_grid(&mut self) -> SpatialGrid {
+    fn construct_voxel_collider_spatial_grid(&mut self, spatial_grid: &mut SpatialGrid) {
         span!(_guard, "Construct voxel collider spatial grid");
         let &mut PhysicsData {
             ref read,
@@ -582,10 +587,7 @@ impl PhysicsData<'_> {
         // because the nonmoving entity is what is collided against in the inner
         // loop of the pushback collision code
         // TODO: optimize these parameters (especially radius cutoff)
-        let lg2_cell_size = 7; // 128
-        let lg2_large_cell_size = 8; // 256
-        let radius_cutoff = 64;
-        let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
+        spatial_grid.clear();
         // TODO: give voxel colliders their own component type
         for (entity, pos, collider, scale, ori) in (
             &read.entities,
@@ -606,8 +608,6 @@ impl PhysicsData<'_> {
                 spatial_grid.insert(pos_2d, radius + POS_TRUNCATION_ERROR, entity);
             }
         }
-
-        spatial_grid
     }
 
     fn handle_movement_and_terrain(
@@ -1474,11 +1474,19 @@ impl<'a> System<'a> for Sys {
         // entities.
         physics_data.maintain_pushback_cache();
 
-        let spatial_grid = physics_data.construct_spatial_grid();
+        // Reuse the spatial grids across ticks; they are cleared and refilled
+        // instead of being reallocated every tick.
+        let mut spatial_grid = std::mem::take(&mut job.own.spatial_grid);
+        physics_data.construct_spatial_grid(&mut spatial_grid);
         physics_data.apply_pushback(job, &spatial_grid);
 
-        let voxel_collider_spatial_grid = physics_data.construct_voxel_collider_spatial_grid();
+        let mut voxel_collider_spatial_grid =
+            std::mem::take(&mut job.own.voxel_collider_spatial_grid);
+        physics_data.construct_voxel_collider_spatial_grid(&mut voxel_collider_spatial_grid);
         physics_data.handle_movement_and_terrain(job, &voxel_collider_spatial_grid);
+
+        job.own.spatial_grid = spatial_grid;
+        job.own.voxel_collider_spatial_grid = voxel_collider_spatial_grid;
 
         // Spatial grid used by other systems
         physics_data.update_cached_spatial_grid();

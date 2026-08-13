@@ -8,6 +8,7 @@ use crate::{
     },
     scene::{RAIN_THRESHOLD, terrain::FireplaceType, trail::TOOL_TRAIL_MANIFEST},
 };
+use bytemuck::Zeroable;
 use common::{
     assets::{AssetExt, DotVox},
     comp::{
@@ -44,8 +45,11 @@ pub struct ParticleMgr {
     /// keep track of timings
     scheduler: HeartbeatScheduler,
 
-    /// GPU Instance Buffer
+    /// GPU Instance Buffer (reused across frames, grows on demand)
     instances: Instances<ParticleInstance>,
+
+    /// Long-lived CPU-side instance array, reused across frames
+    cpu_instances: Vec<ParticleInstance>,
 
     /// GPU Vertex Buffers
     model_cache: HashMap<&'static str, Model<ParticleVertex>>,
@@ -57,6 +61,7 @@ impl ParticleMgr {
             particles: Vec::new(),
             scheduler: HeartbeatScheduler::new(),
             instances: default_instances(renderer),
+            cpu_instances: Vec::new(),
             model_cache: default_cache(renderer),
         }
     }
@@ -4755,16 +4760,16 @@ impl ParticleMgr {
 
     fn upload_particles(&mut self, renderer: &mut Renderer) {
         prof_span!("ParticleMgr::upload_particles");
-        let all_cpu_instances = self
-            .particles
-            .iter()
-            .map(|p| p.instance)
-            .collect::<Vec<ParticleInstance>>();
+        let count = self.particles.len();
 
-        // TODO: optimise buffer writes
-        let gpu_instances = renderer.create_instances(&all_cpu_instances);
+        self.cpu_instances.resize(count, ParticleInstance::zeroed());
+        for (dst, particle) in self.cpu_instances.iter_mut().zip(&self.particles) {
+            *dst = particle.instance;
+        }
 
-        self.instances = gpu_instances;
+        // Reuse the GPU buffer across frames; it is only recreated when the
+        // particle count grows past its capacity.
+        renderer.update_instances(&mut self.instances, &self.cpu_instances);
     }
 
     pub fn render<'a>(&'a self, drawer: &mut ParticleDrawer<'_, 'a>, scene_data: &SceneData) {
