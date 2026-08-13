@@ -650,6 +650,9 @@ pub struct Agent {
     pub stay_pos: Option<Pos>,
     /// Inputs sent up to rtsim
     pub rtsim_outbox: Option<VecDeque<NpcInput>>,
+    /// Time (in seconds) of the last behavior tree execution; used to slow
+    /// down decision making for idle agents far from players.
+    pub last_ai_update: f64,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -763,6 +766,7 @@ impl Agent {
             stay_pos: None,
             awareness: Awareness::new(0.0),
             rtsim_outbox: None,
+            last_ai_update: 0.0,
         }
     }
 

@@ -8,8 +8,8 @@ use crate::sys::agent::{
 };
 use common::{
     comp::{
-        self, Agent, Alignment, Body, CharacterState, Controller, Health, Scale,
-        inventory::slot::EquipSlot, item::ItemDesc,
+        self, Agent, Alignment, Body, CharacterState, Controller, Health, PresenceKind, Scale,
+        agent::BehaviorState, inventory::slot::EquipSlot, item::ItemDesc,
     },
     mounting::Volume,
     path::TraversalConfig,
@@ -18,7 +18,15 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::rng;
 use rayon::iter::ParallelIterator;
-use specs::{LendJoin, ParJoin, WriteStorage};
+use specs::{Join, LendJoin, ParJoin, WriteStorage};
+
+/// How often (in seconds) an idle agent that is far from all players re-runs
+/// its behavior tree. Agents with a target, pending inbox events, in a trade,
+/// or close to a player always run at full tick rate.
+const IDLE_AI_INTERVAL_SECS: f64 = 0.08;
+/// Squared distance to the nearest player below which an agent always runs at
+/// full tick rate.
+const PLAYER_PROXIMITY_SQ: f32 = 25.0 * 25.0;
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
@@ -40,6 +48,15 @@ impl<'a> System<'a> for Sys {
         (read_data, events, mut agents, mut controllers): Self::SystemData,
     ) {
         job.cpu_stats.measure(ParMode::Rayon);
+
+        // Positions of player entities; agents near them always run at full
+        // tick rate.
+        let player_positions = (&read_data.positions, &read_data.presences)
+            .join()
+            .filter_map(|(pos, presence)| {
+                matches!(presence.kind, PresenceKind::Character(_)).then_some(pos.0)
+            })
+            .collect::<Vec<_>>();
 
         (
             &read_data.entities,
@@ -154,24 +171,10 @@ impl<'a> System<'a> for Sys {
                             )
                     };
 
-                    if !matches!(
-                        char_state,
-                        CharacterState::LeapMelee(_) | CharacterState::Glide(_)
-                    ) {
-                        // Default to looking in orientation direction
-                        // (can be overridden below)
-                        //
-                        // This definitely breaks LeapMelee, Glide and
-                        // probably not only that, do we really need this at all?
-                        controller.reset();
-                        controller.inputs.look_dir = ori.look_dir();
-                    }
-
                     let scale = read_data
                         .scales
                         .get(moving_entity)
                         .map_or(1.0, |Scale(s)| *s);
-
                     let glider_equipped = inventory
                         .equipped(EquipSlot::Glider)
                         .as_ref()
@@ -254,19 +257,50 @@ impl<'a> System<'a> for Sys {
                     // also methods on the `AgentData` struct. Action nodes
                     // are the only parts of this tree that should provide
                     // inputs.
-                    let mut behavior_data = BehaviorData {
-                        agent,
-                        agent_data: data,
-                        read_data: &read_data,
-                        emitters: &mut emitters,
-                        controller,
-                        rng: &mut rng,
-                    };
+                    //
+                    // Idle agents far from players only re-run the tree every
+                    // IDLE_AI_INTERVAL_SECS to keep server ticks cheap; the
+                    // controller from the last run keeps them moving smoothly.
+                    // Agents with a target, pending events, in a trade or near
+                    // a player always run at full tick rate.
+                    let time_now = read_data.time.0;
+                    let near_player = player_positions
+                        .iter()
+                        .any(|p| p.distance_squared(pos.0) < PLAYER_PROXIMITY_SQ);
+                    let full_speed = near_player
+                        || agent.target.is_some()
+                        || !agent.inbox.is_empty()
+                        || agent.behavior.is(BehaviorState::TRADING);
+                    if full_speed || time_now - agent.last_ai_update >= IDLE_AI_INTERVAL_SECS {
+                        agent.last_ai_update = time_now;
 
-                    BehaviorTree::root().run(&mut behavior_data);
+                        if !matches!(
+                            char_state,
+                            CharacterState::LeapMelee(_) | CharacterState::Glide(_)
+                        ) {
+                            // Default to looking in orientation direction
+                            // (can be overridden below)
+                            //
+                            // This definitely breaks LeapMelee, Glide and
+                            // probably not only that, do we really need this at all?
+                            controller.reset();
+                            controller.inputs.look_dir = ori.look_dir();
+                        }
 
-                    debug_assert!(controller.inputs.move_dir.map(|e| !e.is_nan()).reduce_and());
-                    debug_assert!(controller.inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
+                        let mut behavior_data = BehaviorData {
+                            agent,
+                            agent_data: data,
+                            read_data: &read_data,
+                            emitters: &mut emitters,
+                            controller,
+                            rng: &mut rng,
+                        };
+
+                        BehaviorTree::root().run(&mut behavior_data);
+
+                        debug_assert!(controller.inputs.move_dir.map(|e| !e.is_nan()).reduce_and());
+                        debug_assert!(controller.inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
+                    }
                 },
             );
     }
